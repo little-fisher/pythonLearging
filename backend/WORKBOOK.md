@@ -58,9 +58,9 @@ backend/
 - 用 Uvicorn 启动，打开 `/docs`。
 
 启动目标：
-
+# uvicorn 就是 .venv/bin/ 里那个可执行文件；app.main:app = "app 包里的 main.py 里的 app 对象"
 ```bash
-uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+uvicorn app.main:app --reload --host 127.0.0.1 --port 8000 
 ```
 
 验收：
