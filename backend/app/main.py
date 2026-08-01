@@ -2,10 +2,22 @@
 # 分工：main(路由层) -> deepseek_client(调模型) -> schemas(数据校验)
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from .schemas import ChatRequest, ChatResponse, ChatMessage
 from .deepseek_client import chat_completion
 
 app = FastAPI() # 创建应用实例
+
+# CORS：允许前端（localhost:5173）跨域调用本后端。来源是明确白名单，不放开任意来源。
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # 健康检查：前端"测试连接"按钮只打这个接口，不产生模型费用
 @app.get('/health') # 装饰器，注册一个路由：当有 GET /health 请求进来，就调用下面这个函数
