@@ -1,0 +1,135 @@
+{
+  "schema_version": "1.0",
+  "task": {
+    "id": "agent-chat-demo-day-01",
+    "title": "创建首个 Agent 聊天前端 Demo 与两天后端手写学习路线",
+    "source_request": "围绕 DeepSeek 可视化对话、多窗口、多轮对话目标创建第一个 Demo；前端可生成，Python 后端由用户亲手编写；两天内完成 FastAPI 与 LangGraph 学习落地。",
+    "status": "completed",
+    "owner": "agent"
+  },
+  "routing": {
+    "primary_type": "requirement-change",
+    "secondary_type": "page-build",
+    "docs_to_read": [
+      ".agents/core/harness/task-intake.md",
+      ".agents/core/harness/task-contract.md",
+      ".agents/core/validation/qa-gates.md",
+      ".agents/project/charter.md"
+    ],
+    "implementation_anchors": [
+      "frontend/index.html",
+      "frontend/styles.css",
+      "frontend/app.js",
+      "docs/2-DAY-PLAN.md",
+      "backend/WORKBOOK.md"
+    ]
+  },
+  "scope": {
+    "in": [
+      "生成可直接运行的零依赖聊天前端",
+      "实现会话创建、切换、独立消息列表与本地持久化",
+      "实现演示模式多轮上下文验证和 FastAPI 联调模式",
+      "定义稳定的前后端 JSON 接口契约",
+      "提供两天分时学习计划与 Python 后端手写练习册"
+    ],
+    "out": [
+      "不生成任何 Python 后端实现文件",
+      "不代用户调用或保存 DeepSeek API Key",
+      "不加入数据库、登录、RAG、工具调用、部署与生产级持久化",
+      "不以真实 DeepSeek 联调作为本轮完成条件"
+    ],
+    "assumptions": [
+      "用户本机可使用 Python 3 启动静态文件服务器",
+      "后续 FastAPI 服务地址采用 http://localhost:8000",
+      "第一版以理解请求链和上下文为优先，不实现流式输出"
+    ]
+  },
+  "success_criteria": [
+    {
+      "id": "SC-1",
+      "description": "前端页面可直接启动，具备输入、发送、消息展示和清晰的后端连接模式",
+      "type": "behavior",
+      "required": true,
+      "validation": {
+        "method": "browser",
+        "command_or_steps": "启动静态服务器后发送一条消息并观察回复",
+        "manual_boundary": "真实 DeepSeek 回复需用户完成后端后验证"
+      },
+      "status": "passed",
+      "evidence": [
+        "Playwright 打开 http://127.0.0.1:5173，输入并发送消息后收到本地演示回复",
+        "node --check frontend/app.js 通过",
+        "output/playwright/agent-lab-demo.png"
+      ]
+    },
+    {
+      "id": "SC-2",
+      "description": "至少可创建两个会话，切换后各自历史互不混合",
+      "type": "behavior",
+      "required": true,
+      "validation": {
+        "method": "browser",
+        "command_or_steps": "在两个会话分别发送不同消息并往返切换",
+        "manual_boundary": "浏览器 localStorage 仅用于学习 Demo"
+      },
+      "status": "passed",
+      "evidence": [
+        "Playwright 创建第二会话后上下文统计为 0，追问时明确无旧消息",
+        "切回第一会话后 4 条有效历史完整保留"
+      ]
+    },
+    {
+      "id": "SC-3",
+      "description": "同一会话第二轮能读取上一轮内容，右侧可观察将发送的历史上下文",
+      "type": "behavior",
+      "required": true,
+      "validation": {
+        "method": "browser",
+        "command_or_steps": "先发送带有记忆信息的消息，再追问上一轮内容",
+        "manual_boundary": "演示模式为确定性模拟；真实模型效果后续联调"
+      },
+      "status": "passed",
+      "evidence": [
+        "第一轮写入姓名与学习目标，第二轮回复准确引用上一条用户消息",
+        "右侧 payload history 从 0 增长为 4，conversation_id 保持不变",
+        "刷新页面后两个会话、活动会话和消息历史仍存在"
+      ]
+    },
+    {
+      "id": "SC-4",
+      "description": "接口契约和两天学习计划能指导用户不复制完整答案地亲手完成 FastAPI、DeepSeek 与 LangGraph 后端",
+      "type": "documentation",
+      "required": true,
+      "validation": {
+        "method": "document-review",
+        "command_or_steps": "检查每个 30 分钟学习单元是否包含目标、手写任务、验证与通过条件",
+        "manual_boundary": "学习效果需用户按计划实际完成后确认"
+      },
+      "status": "passed",
+      "evidence": [
+        "docs/2-DAY-PLAN.md 包含两天分时安排、逐块通过条件和最终验收",
+        "backend/WORKBOOK.md 包含 P0-P8 手写任务、提示、禁止项和口试题",
+        "docs/API-CONTRACT.md 与 frontend/app.js 请求字段一致",
+        "backend 目录未发现任何 .py 文件"
+      ]
+    }
+  ],
+  "risk_controls": {
+    "stop_conditions": [
+      "若实现需要代写 Python 后端则停止并改为提示或练习题",
+      "若真实 API 需要密钥则只说明环境变量，不接触密钥",
+      "若前端范围开始扩展到登录、数据库或部署则停止"
+    ],
+    "rollback_or_recovery": "前端为独立 frontend 目录；删除该目录即可回退业务 Demo，.agents 保留为长期工作区规则。",
+    "permissions_or_external_dependencies": [
+      "真实 DeepSeek 调用需要用户自行准备 DEEPSEEK_API_KEY",
+      "真实后端联调依赖用户完成 FastAPI 实现"
+    ]
+  },
+  "evaluator": {
+    "required": true,
+    "report_path": ".agents/project/memory/current/evaluator-report.md",
+    "decision": "pass"
+  },
+  "change_log": []
+}

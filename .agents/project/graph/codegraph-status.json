@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-08-01T05:01:06.738Z",
+  "project_root": "/Users/luhonggang/Project/AI/learning",
+  "agents_dir": "/Users/luhonggang/Project/AI/learning/.agents",
+  "codegraph_command": "/Users/luhonggang/.nvm/versions/node/v20.19.6/bin/codegraph",
+  "command_available": true,
+  "using_npx": false,
+  "index_path": "/Users/luhonggang/Project/AI/learning/.codegraph",
+  "index_present": true,
+  "mcp_command": "codegraph serve --mcp",
+  "status_exit_code": 0,
+  "status_text": "\u001b[1m\nCodeGraph Status\n\u001b[0m\n\u001b[36mProject:\u001b[0m /Users/luhonggang/Project/AI/learning\n\n\u001b[1mIndex Statistics:\u001b[0m\n  Files:     34\n  Nodes:     632\n  Edges:     1,983\n  DB Size:   2.11 MB\n  Backend:   \u001b[32mnode:sqlite — built-in (full WAL)\u001b[0m\n  Journal:   \u001b[32mwal\u001b[0m\n\n\u001b[1mNodes by Kind:\u001b[0m\n  function        451\n  constant        93\n  import          65\n  file            22\n  variable        1\n\n\u001b[1mFiles by Language:\u001b[0m\n  javascript      17\n  yaml            12\n  liquid          5\n\n\u001b[32m✓\u001b[0m Index is up to date"
+}

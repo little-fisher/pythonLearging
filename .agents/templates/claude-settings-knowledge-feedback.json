@@ -1,0 +1,16 @@
+{
+  "_comment": "Claude Code Stop hook 示例。将 hooks.Stop 中的 knowledge-feedback-stop.sh 命令合并到项目 .claude/settings.json。全局 bridge 追加项目 Raw 并自动编译机器 Wiki，不修改个人画像或可执行 Schema。",
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .agents/hooks/scripts/knowledge-feedback-stop.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

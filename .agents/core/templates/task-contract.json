@@ -1,0 +1,47 @@
+{
+  "schema_version": "1.0",
+  "task": {
+    "id": "",
+    "title": "",
+    "source_request": "",
+    "status": "draft",
+    "owner": "agent"
+  },
+  "routing": {
+    "primary_type": "",
+    "secondary_type": "",
+    "docs_to_read": [],
+    "implementation_anchors": []
+  },
+  "scope": {
+    "in": [],
+    "out": [],
+    "assumptions": []
+  },
+  "success_criteria": [
+    {
+      "id": "SC-1",
+      "description": "",
+      "type": "behavior",
+      "required": true,
+      "validation": {
+        "method": "",
+        "command_or_steps": "",
+        "manual_boundary": ""
+      },
+      "status": "untested",
+      "evidence": []
+    }
+  ],
+  "risk_controls": {
+    "stop_conditions": [],
+    "rollback_or_recovery": "",
+    "permissions_or_external_dependencies": []
+  },
+  "evaluator": {
+    "required": true,
+    "report_path": "",
+    "decision": "pending"
+  },
+  "change_log": []
+}

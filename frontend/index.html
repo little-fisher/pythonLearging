@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="用于学习 FastAPI、LangGraph 与 DeepSeek 多轮对话的可视化 Agent 实验台"
+    />
+    <title>Agent Lab · 对话实验台</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='8' fill='%23171b18'/%3E%3Cpath d='M18 44 32 16l14 28M23 34h18' fill='none' stroke='%23d8ff52' stroke-width='5'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="noise" aria-hidden="true"></div>
+    <div class="lab-shell">
+      <header class="topbar">
+        <a class="brand" href="./" aria-label="Agent Lab 首页">
+          <span class="brand-mark" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </span>
+          <span>
+            <strong>AGENT LAB</strong>
+            <small>Python Intelligence Workshop</small>
+          </span>
+        </a>
+
+        <div class="topbar-center" aria-label="当前学习阶段">
+          <span class="stage-index">01</span>
+          <span class="stage-copy">CHAT / MEMORY / THREAD</span>
+        </div>
+
+        <div class="runtime-status">
+          <span class="status-dot" id="statusDot" aria-hidden="true"></span>
+          <span id="runtimeStatus">本地演示已就绪</span>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <aside class="conversation-panel" aria-label="会话列表">
+          <div class="panel-heading">
+            <div>
+              <span class="eyebrow">THREAD ARCHIVE</span>
+              <h1>对话窗口</h1>
+            </div>
+            <span class="session-total" id="sessionTotal">01</span>
+          </div>
+
+          <button class="new-session-button" id="newSessionButton" type="button">
+            <span class="button-cross" aria-hidden="true"></span>
+            新建会话
+            <kbd>N</kbd>
+          </button>
+
+          <nav class="conversation-list" id="conversationList" aria-label="已有对话"></nav>
+
+          <div class="sidebar-note">
+            <span>LOCAL STORAGE</span>
+            <p>每个窗口单独保存消息。刷新页面后，实验记录仍会保留。</p>
+          </div>
+        </aside>
+
+        <section class="chat-panel" aria-labelledby="chatTitle">
+          <header class="chat-header">
+            <div class="chat-title-wrap">
+              <span class="live-badge"><i aria-hidden="true"></i> ACTIVE THREAD</span>
+              <h2 id="chatTitle">未命名会话</h2>
+            </div>
+            <div class="thread-meta">
+              <span>ID</span>
+              <code id="threadId">—</code>
+            </div>
+          </header>
+
+          <div
+            class="message-list"
+            id="messageList"
+            role="log"
+            aria-live="polite"
+            aria-label="对话消息"
+          ></div>
+
+          <div class="prompt-suggestions" id="promptSuggestions" aria-label="推荐测试问题">
+            <button type="button" data-prompt="记住：我叫小林，我正在学习 Python Agent。">
+              <span>01</span>写入一条记忆
+            </button>
+            <button type="button" data-prompt="我刚才说了什么？">
+              <span>02</span>验证多轮上下文
+            </button>
+          </div>
+
+          <form class="composer" id="composerForm">
+            <label class="sr-only" for="messageInput">输入消息</label>
+            <textarea
+              id="messageInput"
+              rows="1"
+              maxlength="4000"
+              placeholder="输入一条消息，观察它如何进入 Agent 状态…"
+              autocomplete="off"
+            ></textarea>
+            <div class="composer-footer">
+              <span><kbd>Enter</kbd> 发送 · <kbd>Shift + Enter</kbd> 换行</span>
+              <span class="character-count" id="characterCount">0 / 4000</span>
+              <button class="send-button" id="sendButton" type="submit">
+                <span>发送</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M5 12h13M13 6l6 6-6 6" />
+                </svg>
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <aside class="inspector-panel" aria-label="上下文观察器">
+          <div class="inspector-heading">
+            <span class="eyebrow">STATE INSPECTOR</span>
+            <h2>请求上下文</h2>
+            <p>这一栏不是装饰。每次发送前，先看清浏览器准备交给后端什么。</p>
+          </div>
+
+          <section class="settings-card" aria-labelledby="connectionTitle">
+            <div class="section-label">
+              <span>01</span>
+              <h3 id="connectionTitle">连接方式</h3>
+            </div>
+
+            <label class="field-label" for="connectionMode">运行模式</label>
+            <select id="connectionMode">
+              <option value="demo">本地演示（无需后端）</option>
+              <option value="api">FastAPI 联调</option>
+            </select>
+
+            <label class="field-label" for="contextMode">上下文策略</label>
+            <select id="contextMode">
+              <option value="client_history">Day 1 · client_history</option>
+              <option value="graph_memory">Day 2 · graph_memory</option>
+            </select>
+
+            <label class="field-label" for="apiEndpoint">后端地址</label>
+            <input id="apiEndpoint" type="url" value="http://localhost:8000" spellcheck="false" />
+
+            <button class="test-button" id="testConnectionButton" type="button">
+              测试 /health
+              <span aria-hidden="true">↗</span>
+            </button>
+          </section>
+
+          <section class="context-stats" aria-label="当前上下文统计">
+            <article>
+              <span id="contextMessageCount">0</span>
+              <small>历史消息</small>
+            </article>
+            <article>
+              <span id="contextCharacterCount">0</span>
+              <small>上下文字符</small>
+            </article>
+          </section>
+
+          <section class="payload-card" aria-labelledby="payloadTitle">
+            <div class="payload-title-row">
+              <div class="section-label compact">
+                <span>02</span>
+                <h3 id="payloadTitle">下一次请求</h3>
+              </div>
+              <button class="copy-button" id="copyPayloadButton" type="button">复制 JSON</button>
+            </div>
+            <pre id="payloadPreview" tabindex="0"></pre>
+          </section>
+
+          <section class="learning-path" aria-labelledby="learningTitle">
+            <div class="section-label compact">
+              <span>03</span>
+              <h3 id="learningTitle">两天路径</h3>
+            </div>
+            <ol>
+              <li class="is-current"><span></span><div><strong>页面与窗口</strong><small>当前 · Frontend</small></div></li>
+              <li><span></span><div><strong>FastAPI 接口</strong><small>Day 1 · Python</small></div></li>
+              <li><span></span><div><strong>LangGraph 记忆</strong><small>Day 2 · Agent</small></div></li>
+            </ol>
+          </section>
+        </aside>
+      </main>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="./app.js"></script>
+  </body>
+</html>

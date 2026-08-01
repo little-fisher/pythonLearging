@@ -1,0 +1,53 @@
+{
+  "schema_version": "1.0",
+  "generated_by": "agent-project-profile.mjs",
+  "always_docs": [
+    "project/project-profile.md",
+    "project/charter.md",
+    "project/task-routing-overrides.md"
+  ],
+  "rules": [
+    {
+      "id": "design-sources",
+      "keywords": [
+        "页面",
+        "视觉",
+        "设计",
+        "figma",
+        "截图",
+        "样式",
+        "ui"
+      ],
+      "docs": [
+        ".agents/core/harness/tasks/page-build.md",
+        ".agents/core/harness/tasks/requirement-change.md"
+      ]
+    },
+    {
+      "id": "requirements",
+      "keywords": [
+        "需求",
+        "验收",
+        "prd",
+        "规则",
+        "流程"
+      ],
+      "docs": [
+        ".agents/core/harness/HARNESS_CORE_SPEC.md",
+        ".agents/core/harness/tasks/requirement-change.md"
+      ]
+    },
+    {
+      "id": "references",
+      "keywords": [
+        "参考",
+        "文档",
+        "说明",
+        "指南"
+      ],
+      "docs": [
+        ".agents/core/harness/README.md"
+      ]
+    }
+  ]
+}

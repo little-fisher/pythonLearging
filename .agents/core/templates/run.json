@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0",
+  "run_id": "",
+  "status": "draft",
+  "task": {
+    "title": "",
+    "source_request": ""
+  },
+  "classification": {
+    "size": "",
+    "primary_type": "",
+    "secondary_types": []
+  },
+  "scope": {
+    "in": [],
+    "out": [],
+    "assumptions": []
+  },
+  "context": {
+    "no_context_needed": false,
+    "reason": ""
+  },
+  "paths": {
+    "context_pack": "context-pack.md",
+    "contract": "contract.json",
+    "evidence": "evidence.md",
+    "evaluator_report": "evaluator-report.md",
+    "outcome": "outcome.md"
+  },
+  "evaluator": {
+    "decision": "pending",
+    "report_path": ""
+  },
+  "quality_gates": [],
+  "evidence": [],
+  "blockers": [],
+  "transitions": []
+}

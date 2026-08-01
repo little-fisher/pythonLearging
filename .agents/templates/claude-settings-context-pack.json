@@ -1,0 +1,16 @@
+{
+  "_comment": "Claude Code UserPromptSubmit hook 示例。将 hooks.UserPromptSubmit 合并到项目 .claude/settings.json,任务开始时自动生成上下文包。micro 任务静默跳过;非 micro 写入 .agents/project/memory/current/context-pack.md 并回一行摘要。设 AGENT_CONTEXT_PACK=0 关闭。可与 claude-settings-knowledge-feedback.json 的 Stop hook 同时使用,形成入口自动+出口自动的闭环。",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .agents/hooks/scripts/context-pack-start.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

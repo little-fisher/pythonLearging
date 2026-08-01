@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .agents/hooks/scripts/knowledge-feedback-stop.sh",
+            "statusMessage": "Writing knowledge feedback"
+          }
+        ]
+      }
+    ]
+  }
+}
