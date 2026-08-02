@@ -34,7 +34,7 @@ let toastTimer = 0;
 
 bindEvents();
 renderAll();
-syncSessionsFromApi();   // D4-3 ②：API 模式下启动时从后端拉会话列表
+bootstrapApi();   // D4-5：启动时从后端拉会话列表 + 当前会话消息
 
 function bindEvents() {
   elements.newSessionButton.addEventListener("click", () => createAndActivateSession());
@@ -104,35 +104,41 @@ function bindEvents() {
 }
 
 function loadWorkspace() {
+  let stored = null;
   try {
-    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    if (stored && Array.isArray(stored.sessions) && stored.sessions.length > 0) {
-      const activeExists = stored.sessions.some((session) => session.id === stored.activeSessionId);
-      return {
-        sessions: stored.sessions.map(sanitizeSession),
-        activeSessionId: activeExists ? stored.activeSessionId : stored.sessions[0].id,
-        settings: {
-          connectionMode: stored.settings?.connectionMode === "api" ? "api" : "demo",
-          contextMode:
-            stored.settings?.contextMode === "graph_memory" ? "graph_memory" : "client_history",
-          apiEndpoint: normalizeEndpoint(stored.settings?.apiEndpoint || DEFAULT_ENDPOINT),
-        },
-        pendingSessionId: null,
-      };
-    }
+    stored = JSON.parse(localStorage.getItem(STORAGE_KEY));
   } catch (error) {
-    console.warn("无法读取本地实验记录，将创建新会话。", error);
+    console.warn("无法读取本地实验记录。", error);
+  }
+
+  const settings = {
+    connectionMode: stored?.settings?.connectionMode === "api" ? "api" : "demo",
+    contextMode:
+      stored?.settings?.contextMode === "graph_memory" ? "graph_memory" : "client_history",
+    apiEndpoint: normalizeEndpoint(stored?.settings?.apiEndpoint || DEFAULT_ENDPOINT),
+  };
+
+  // API 模式：会话/消息以 MySQL 为准，本地不缓存 → 从空开始，稍后 bootstrapApi 从后端拉
+  if (settings.connectionMode === "api") {
+    return { sessions: [], activeSessionId: null, settings, pendingSessionId: null };
+  }
+
+  // 演示模式：读 localStorage 的会话；没有就建一个演示会话
+  if (stored && Array.isArray(stored.sessions) && stored.sessions.length > 0) {
+    const activeExists = stored.sessions.some((session) => session.id === stored.activeSessionId);
+    return {
+      sessions: stored.sessions.map(sanitizeSession),
+      activeSessionId: activeExists ? stored.activeSessionId : stored.sessions[0].id,
+      settings,
+      pendingSessionId: null,
+    };
   }
 
   const firstSession = createSession();
   return {
     sessions: [firstSession],
     activeSessionId: firstSession.id,
-    settings: {
-      connectionMode: "demo",
-      contextMode: "client_history",
-      apiEndpoint: DEFAULT_ENDPOINT,
-    },
+    settings,
     pendingSessionId: null,
   };
 }
@@ -214,14 +220,14 @@ function deleteSession(sessionId) {
 
 function persistWorkspace() {
   try {
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({
-        sessions: state.sessions,
-        activeSessionId: state.activeSessionId,
-        settings: state.settings,
-      }),
-    );
+    const data = { settings: state.settings };
+    // API 模式：会话/消息以 MySQL 为准，不写 localStorage（只存设置）
+    // 演示模式：没有后端，必须把会话/消息存本地
+    if (state.settings.connectionMode !== "api") {
+      data.sessions = state.sessions;
+      data.activeSessionId = state.activeSessionId;
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   } catch (error) {
     console.error("保存本地实验记录失败。", error);
     showToast("本地存储失败，刷新后记录可能丢失", true);
@@ -253,6 +259,10 @@ function renderConversations() {
       state.activeSessionId = session.id;
       persistWorkspace();
       renderAll();
+      // D4-5：API 模式下切到没有本地消息的会话 → 从后端拉消息（以 MySQL 为准）
+      if (state.settings.connectionMode === "api" && session.messages.length === 0) {
+        loadMessagesFromApi(session.id);
+      }
     });
 
     const number = document.createElement("span");
@@ -456,7 +466,9 @@ function createPayload(conversationId, message, history) {
   return {
     conversation_id: conversationId,
     message,
-    history,
+    // graph_memory 模式：历史在 Checkpointer 里，后端不读 req.history → 不传
+    // client_history 模式：后端要手动拼历史 → 才传
+    ...(state.settings.contextMode === "graph_memory" ? {} : { history }),
     context_mode: state.settings.contextMode,
     title,
   };
@@ -518,10 +530,44 @@ async function syncSessionsFromApi() {
     }
 
     state.sessions = merged;
+    // 确保激活的会话存在（后端拉回来没有匹配就默认第一个）
+    if (!merged.some((s) => s.id === state.activeSessionId) && merged.length > 0) {
+      state.activeSessionId = merged[0].id;
+    }
     persistWorkspace();
     renderAll();
   } catch {
     // 后端不可达 → 静默保留本地数据，不打扰用户
+  }
+}
+
+// D4-5：启动引导 —— 先拉会话列表，再拉当前会话的消息（数据以 MySQL 为准）
+async function bootstrapApi() {
+  await syncSessionsFromApi();
+  if (state.settings.connectionMode !== "api") return;
+  const active = getActiveSession();
+  if (active && active.messages.length === 0) {
+    await loadMessagesFromApi(active.id);
+  }
+}
+
+// D4-5：从后端拉某个会话的全部消息（切换会话 / 首次打开时用）
+async function loadMessagesFromApi(conversationId) {
+  if (state.settings.connectionMode !== "api") return;
+  const session = state.sessions.find((s) => s.id === conversationId);
+  if (!session) return;
+  try {
+    const res = await fetch(
+      `${normalizeEndpoint(state.settings.apiEndpoint)}/conversations/${conversationId}/messages`,
+    );
+    if (!res.ok) return;                    // 404（后端还没有）等 → 保持现状
+    const list = await res.json();          // [{role, content}, ...]
+    if (!Array.isArray(list)) return;
+    session.messages = list.map((m) => createMessage(m.role, m.content));
+    persistWorkspace();
+    renderAll();
+  } catch {
+    // 后端不可达 → 保留本地
   }
 }
 

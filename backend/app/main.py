@@ -99,6 +99,19 @@ def list_conversations():
     conn.close()                         # ⑥ 断连接
     return rows                          # ⑦ 返回给 FastAPI，会自动序列化成 JSON 数组
 
+# D4-5：返回某个会话的全部消息（前端切换会话时拉取；只读不跑图）
+@app.get("/conversations/{conversation_id}/messages")
+def get_conversation_messages(conversation_id: str):
+    # graph.get_state()：从 Checkpointer 读回这个 thread 的【当前状态】（含全部消息）
+    snapshot = graph.get_state({"configurable": {"thread_id": conversation_id}})
+    messages = snapshot.values.get("messages", []) if snapshot and snapshot.values else []
+    # LangChain 消息类型 human/ai → 前端要的 user/assistant；跳过工具消息
+    return [
+        {"role": "user" if m.type == "human" else "assistant", "content": m.content}
+        for m in messages
+        if m.type in ("human", "ai")
+    ]
+
 # 删除一个会话
 @app.delete("/conversations/{conversation_id}")
 def delete_conversation(conversation_id: str):
