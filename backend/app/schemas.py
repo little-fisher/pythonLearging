@@ -24,6 +24,8 @@ class ChatRequest(BaseModel):
     # 否则所有实例会共享同一个列表（可变默认值陷阱，呼应 id() 笔记）
     history: list[ChatMessage] = Field(default_factory=list)
     context_mode: Literal["client_history", "graph_memory"] = "client_history"  # Day1 用前者，Day2 切后者
+    # D4-3 ②：可选标题 —— 前端把会话标题带来，后端懒创建时用它写库（不传则回落"未命名会话"）
+    title: str | None = None
 
 
 class UsageInfo(BaseModel):

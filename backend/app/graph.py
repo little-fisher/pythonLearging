@@ -11,7 +11,8 @@ from dotenv import load_dotenv                        # 读 backend/.env（和 d
 from langchain_deepseek import ChatDeepSeek           # LangChain 的 DeepSeek 适配器（相当于 P3 的 OpenAI 客户端）
 from langgraph.graph import StateGraph, START, END    # 图 + 两个内置特殊节点：入口 START / 出口 END
 from langgraph.graph.message import MessagesState     # 官方消息状态：唯一键是 messages（复数）
-from langgraph.checkpoint.memory import InMemorySaver  # 内存存储器：P7 会在这里加 Checkpointer，让图能存/恢复历史
+import pymysql                                          # MySQL 驱动（D4-4）
+from langgraph.checkpoint.mysql.pymysql import PyMySQLSaver  # MySQL 持久化 Checkpointer（D4-4）
 from datetime import datetime
 from langchain_core.tools import tool
 from langchain_core.messages import ToolMessage
@@ -82,6 +83,16 @@ builder.add_conditional_edges(
 builder.add_edge("call_tool", "call_model")  # 边②：工具 → 工位（工具执行完再回到模型）
 # 编译成可运行对象：之后 graph.invoke({...}) 会【沿着边】跑整条流水线，
 # 走到节点才调用对应函数（声明式：你只管搭，执行顺序交给框架）。
-# P7 在 compile() 里传入 Checkpointer（InMemorySaver），让图能存/恢复历史。
-checkpoint = InMemorySaver()
-graph = builder.compile(checkpointer=checkpoint)
+# D4-4：Checkpointer 换成 MySQL 持久化 —— InMemorySaver 重启就丢，这个不会。
+# 自己持有一条【持久连接】（不放进 with），进程存活期间一直复用。
+DB_CONN = pymysql.connect(
+    host=os.getenv("DB_HOST", "127.0.0.1"),
+    port=int(os.getenv("DB_PORT", "3306")),
+    user=os.getenv("DB_USER", "root"),
+    password=os.getenv("DB_PASSWORD", "root"),
+    database=os.getenv("DB_NAME", "agent_lab"),
+    autocommit=True,
+)
+checkpointer = PyMySQLSaver(DB_CONN)   # 用这条连接做记忆的"仓库"
+checkpointer.setup()                  # 建 checkpoints 等表（已存在会自动跳过）
+graph = builder.compile(checkpointer=checkpointer)

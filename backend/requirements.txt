@@ -5,3 +5,5 @@ python-dotenv
 langgraph
 langchain-deepseek
 mysql-connector-python
+pymysql
+langgraph-checkpoint-mysql

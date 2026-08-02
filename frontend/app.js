@@ -34,6 +34,7 @@ let toastTimer = 0;
 
 bindEvents();
 renderAll();
+syncSessionsFromApi();   // D4-3 ②：API 模式下启动时从后端拉会话列表
 
 function bindEvents() {
   elements.newSessionButton.addEventListener("click", () => createAndActivateSession());
@@ -68,6 +69,7 @@ function bindEvents() {
     );
     persistWorkspace();
     renderSettings();
+    if (state.settings.connectionMode === "api") syncSessionsFromApi();   // D4-3 ②：切到 API 模式就拉一次
   });
 
   elements.contextMode.addEventListener("change", () => {
@@ -192,6 +194,13 @@ function deleteSession(sessionId) {
   if (state.pendingSessionId === sessionId) {
     showToast("这个会话正在等待回复，暂时不能删除", true);
     return;
+  }
+
+  // D4-3 ②：API 模式下，同步删掉后端那条会话（失败也别阻断本地操作）
+  if (state.settings.connectionMode === "api") {
+    fetch(`${normalizeEndpoint(state.settings.apiEndpoint)}/conversations/${sessionId}`, {
+      method: "DELETE",
+    }).catch(() => {});
   }
 
   state.sessions = state.sessions.filter((session) => session.id !== sessionId);
@@ -415,6 +424,8 @@ async function handleSubmit(event) {
       "ready",
       state.settings.connectionMode === "demo" ? "本地演示已就绪" : "FastAPI 最近请求成功",
     );
+    // D4-3 ②：API 回复成功后刷新列表（让刚落库的新会话出现在后端名单里）
+    if (state.settings.connectionMode === "api") syncSessionsFromApi();
   } catch (error) {
     const targetSession = state.sessions.find((item) => item.id === session.id);
     if (targetSession) {
@@ -438,11 +449,16 @@ async function handleSubmit(event) {
 }
 
 function createPayload(conversationId, message, history) {
+  // D4-3 ②：把会话标题带给后端（新会话用第一条消息生成标题）
+  const session = getActiveSession();
+  const title =
+    session && session.title !== "未命名会话" ? session.title : createTitle(message);
   return {
     conversation_id: conversationId,
     message,
     history,
     context_mode: state.settings.contextMode,
+    title,
   };
 }
 
@@ -463,6 +479,50 @@ async function requestAssistant(payload) {
     throw new Error("后端响应不符合 API_CONTRACT.md：缺少 assistant message.content");
   }
   return data.message.content;
+}
+
+// D4-3 ②：从后端 GET /conversations 拉会话列表，合并进本地 state.sessions
+async function syncSessionsFromApi() {
+  if (state.settings.connectionMode !== "api") return;   // 只有 API 模式才需要后端数据
+  try {
+    const res = await fetch(`${normalizeEndpoint(state.settings.apiEndpoint)}/conversations`);
+    if (!res.ok) return;
+    const list = await res.json();
+    if (!Array.isArray(list)) return;
+
+    const backendById = new Map(list.map((c) => [c.id, c]));
+    const localById = new Map(state.sessions.map((s) => [s.id, s]));
+    const merged = [];
+
+    // ① 后端有 → 合并进本地（更新标题/时间；本地没有的就从后端建一个会话壳）
+    for (const [id, backend] of backendById) {
+      const local = localById.get(id);
+      if (local) {
+        local.title = backend.title || local.title;
+        local.updatedAt = backend.updated_at;
+        local.createdAt = backend.created_at;
+        merged.push(local);
+      } else {
+        merged.push({
+          id,
+          title: backend.title || "未命名会话",
+          createdAt: backend.created_at,
+          updatedAt: backend.updated_at,
+          messages: [],   // 消息仍由后端 Checkpointer 管，前端列表只显示名片
+        });
+      }
+    }
+    // ② 本地有、后端还没有的（还没发过消息）→ 保留（之后第一次发消息才会落库）
+    for (const s of state.sessions) {
+      if (!backendById.has(s.id)) merged.push(s);
+    }
+
+    state.sessions = merged;
+    persistWorkspace();
+    renderAll();
+  } catch {
+    // 后端不可达 → 静默保留本地数据，不打扰用户
+  }
 }
 
 async function testConnection() {

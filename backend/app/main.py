@@ -40,7 +40,7 @@ def chat(req:ChatRequest) -> ChatResponse:
         #    之后（同一会话再发消息）→ 主键重复，IGNORE 悄悄跳过，不报错、不重复插入
         cur.execute(
             "INSERT IGNORE INTO sessions (id, title) VALUES (%s, %s)",
-            (req.conversation_id, "未命名会话"),
+            (req.conversation_id, req.title or "未命名会话"),  # 用前端带来的标题，没带就回落默认
         )
         conn.commit()                        # ④ 写操作必须 commit 才真正落库（读不用）
         cur.close()                          # ⑤ 关游标
