@@ -5,6 +5,8 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from .schemas import ChatRequest, ChatResponse, ChatMessage
 from .deepseek_client import chat_completion
+from langchain_core.messages import HumanMessage
+from .graph import graph
 
 app = FastAPI() # 创建应用实例
 
@@ -27,6 +29,23 @@ def health() ->dict[str, str]: # 返回一个字典，键是 status，值是 ok
 # 核心聊天接口：接收前端消息 → 拼多轮上下文 → 调 DeepSeek → 返回 assistant 回答
 @app.post('/api/chat') # 装饰器，注册一个路由：当有 POST /api/chat 请求进来，就调用下面这个函数
 def chat(req:ChatRequest) -> ChatResponse:
+    # P8 分支：context_mode == graph_memory → 走 LangGraph 记忆
+    if req.context_mode == "graph_memory":
+        # P8 伪代码①：只把【当前 message】交给图，当作新的 HumanMessage。
+        # 为什么只传这一句？历史已经在 Checkpointer 里了，再把 req.history 传一遍每轮都会重复。
+        result = graph.invoke(
+            {"messages": [HumanMessage(content=req.message)]},
+            config={"configurable": {"thread_id": req.conversation_id}},  # conversation_id -> thread_id
+        )
+        # P8 伪代码②：从图结果最后一条 AIMessage 取 content（对象用点属性，不是 dict 下标）
+        content = result["messages"][-1].content
+        # P8 伪代码③：组装 ChatResponse（graph 模式拿不到 usage → None）
+        return ChatResponse(
+            conversation_id=req.conversation_id,
+            message=ChatMessage(role="assistant", content=content),
+            usage=None,
+        )
+
     # P4 伪代码①：Day 1 只支持 client_history，其它模式明确拒绝
     if req.context_mode != "client_history":
         # 契约要求：不支持的上下文模式 → 400，并给出明确原因
