@@ -6,7 +6,30 @@
 2. 多个会话窗口互相隔离；
 3. 同一会话能带上历史，完成真正的多轮对话。
 
-当前已经生成前端、接口契约和学习练习册。**没有生成任何 Python 实现文件**，后端由你按练习卡亲手创建。
+当前已经生成前端、接口契约、学习练习册和 **Python 后端（FastAPI + LangGraph）**。后端由你按练习卡亲手创建，并逐卡验收通过。
+
+## 完成情况（2026-08-02）
+
+三项作业目标全部完成，并做了超额扩展：
+
+| 作业要求 | 实现位置 | 状态 |
+|---|---|---|
+| 01 做页面：输入框 / 发送 / 消息区 / 调 DeepSeek | `frontend/*` + `backend/app/main.py` | ✅ |
+| 02 切窗口：每个会话独立消息历史 | `app.js` 会话列表 + localStorage | ✅ |
+| 03 做多轮：带当前窗口历史继续发给 DeepSeek | `client_history`（P4）/ `graph_memory`（P8） | ✅ |
+
+额外扩展：
+- 契约化 API：Pydantic 校验 + 错误码（400/422/502）+ CORS 白名单（P1–P5）
+- LangGraph 记忆：`MessagesState` + `InMemorySaver` Checkpointer + `thread_id` 隔离（P6–P8）
+- 工具调用 Agent：`@tool` + `bind_tools` + `call_tool` 节点 + 条件边 + 回环（Day 3）
+
+启动方式（后端必须从 `backend/` 目录启动，`load_dotenv()` 按当前工作目录找 `.env`）：
+
+```bash
+cd backend && source .venv/bin/activate
+uvicorn app.main:app --reload --host 127.0.0.1 --port 8000   # 后端
+python3 -m http.server 5173 -d frontend                       # 前端
+```
 
 ## 先运行前端
 
