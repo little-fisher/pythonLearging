@@ -51,6 +51,7 @@ python3 -m http.server 5173 --directory frontend
 ## 两天怎么走
 
 - [两天学习计划](docs/2-DAY-PLAN.md)：按时间块安排学习和验收。
+- [三天+扩展计划](docs/3-DAY-PLAN.md)：可选进阶 —— MySQL 会话入库、持久化 Checkpointer、流式输出。
 - [Python 后端练习册](backend/WORKBOOK.md)：只给任务、接口、提示和通过条件，不给完整答案。
 - [前后端接口契约](docs/API-CONTRACT.md)：你写 Pydantic 模型和路由时的唯一字段依据。
 
