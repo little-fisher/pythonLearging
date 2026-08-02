@@ -12,6 +12,9 @@ from langchain_deepseek import ChatDeepSeek           # LangChain 的 DeepSeek �
 from langgraph.graph import StateGraph, START, END    # 图 + 两个内置特殊节点：入口 START / 出口 END
 from langgraph.graph.message import MessagesState     # 官方消息状态：唯一键是 messages（复数）
 from langgraph.checkpoint.memory import InMemorySaver  # 内存存储器：P7 会在这里加 Checkpointer，让图能存/恢复历史
+from datetime import datetime
+from langchain_core.tools import tool
+from langchain_core.messages import ToolMessage
 
 load_dotenv()
 
@@ -21,6 +24,34 @@ MODEL = os.getenv("DEEPSEEK_MODEL", "deepseek-v4-flash")
 # 创建模型实例：ChatDeepSeek 是"LangChain 版的 DeepSeek 客户端"
 # 不传 api_key 时它会自动读 DEEPSEEK_API_KEY 环境变量（这里显式传，和 P3 写法一致更明确）
 model = ChatDeepSeek(model=MODEL, api_key=os.getenv("DEEPSEEK_API_KEY"))
+@tool
+def get_current_time() -> str:
+    """返回当前时间的字符串表示"""
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+model = model.bind_tools([get_current_time])
+
+def call_tool(state: MessagesState) -> dict:
+    last_message = state["messages"][-1]
+    tools_map = {"get_current_time": get_current_time}
+    outputs = []
+    for call in last_message.tool_calls:
+        # call 是 dict（不是对象）：{name, args, id, type}，用 [] 取值
+        tool = tools_map[call["name"]]        # 按名字取出真正的函数
+        result = tool.invoke(call["args"])    # 执行工具（args 是参数，这里为空）
+        # 配对：tool_call_id 必须等于这个 tool_call 的 id，模型靠它认领结果
+        outputs.append(ToolMessage(content=str(result), tool_call_id=call["id"]))
+    return {"messages": outputs}
+
+def should_continue(state: MessagesState) -> str:
+    """条件边路由函数：看模型的意图，决定下一步去哪。
+
+    它读状态，返回一个"路名"字符串；图拿到路名后查映射表决定走向。
+    （路名要和 add_conditional_edges 的映射表 key 一一对应）
+    """
+    last_message = state["messages"][-1]   # 取出模型刚生成的那条 AIMessage
+    if last_message.tool_calls:            # 它带了 tool_calls = "想调工具"
+        return "tools"                     # 路名 "tools" → 条件边带你去 call_tool
+    return "end"                           # 路名 "end" → 正常回答，直接结束
 
 def call_model(state: MessagesState) -> dict:
     """一个节点 = 一个工位：输入【整个状态】，输出【局部更新】。
@@ -36,11 +67,21 @@ def call_model(state: MessagesState) -> dict:
 # 搭图三件套：State（状态类型）→ Node（工位）→ Edge（传送方向）
 builder = StateGraph(MessagesState)          # 声明图的"状态类型" = 官方消息状态（传送带装的是消息列表）
 builder.add_node("call_model", call_model)   # 注册节点：给工位起名 "call_model" 并绑定函数
+builder.add_node("call_tool", call_tool)        # 注册节点：给工位起名 "tools" 并绑定函数
 builder.add_edge(START, "call_model")        # 边①：入口 → 工位（invoke 从这里开始执行）
-builder.add_edge("call_model", END)          # 边②：工位 → 出口（干完活结束）
 
+builder.add_conditional_edges(
+    "call_model",  # 从工位 call_model 出发
+    should_continue,  # 用这个函数判断下一步走哪条边
+    {
+        "tools": "call_tool",  # 如果 should_continue 返回 "tools"，就走到 call_tool 工位
+        "end": END,            # 如果 should_continue 返回 "end"，就走到出口 END
+    }
+)
+
+builder.add_edge("call_tool", "call_model")  # 边②：工具 → 工位（工具执行完再回到模型）
 # 编译成可运行对象：之后 graph.invoke({...}) 会【沿着边】跑整条流水线，
 # 走到节点才调用对应函数（声明式：你只管搭，执行顺序交给框架）。
-# P7 会在 compile() 里传入 Checkpointer（InMemorySaver），让图能存/恢复历史。
+# P7 在 compile() 里传入 Checkpointer（InMemorySaver），让图能存/恢复历史。
 checkpoint = InMemorySaver()
 graph = builder.compile(checkpointer=checkpoint)
