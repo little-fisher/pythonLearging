@@ -7,6 +7,7 @@ from .schemas import ChatRequest, ChatResponse, ChatMessage
 from .deepseek_client import chat_completion
 from langchain_core.messages import HumanMessage
 from .graph import graph
+from . import db
 
 app = FastAPI() # 创建应用实例
 
@@ -31,6 +32,20 @@ def health() ->dict[str, str]: # 返回一个字典，键是 status，值是 ok
 def chat(req:ChatRequest) -> ChatResponse:
     # P8 分支：context_mode == graph_memory → 走 LangGraph 记忆
     if req.context_mode == "graph_memory":
+        # D4-3：第一次聊天时，把会话"名片"写进数据库（懒创建）
+        conn = db.get_db_connection()        # ① 建立连接（拿"电话线"）
+        cur = conn.cursor()                  # ② 开游标
+        # ③ INSERT IGNORE：id 是主键。
+        #    第 1 次（新会话）→ 插入一行；
+        #    之后（同一会话再发消息）→ 主键重复，IGNORE 悄悄跳过，不报错、不重复插入
+        cur.execute(
+            "INSERT IGNORE INTO sessions (id, title) VALUES (%s, %s)",
+            (req.conversation_id, "未命名会话"),
+        )
+        conn.commit()                        # ④ 写操作必须 commit 才真正落库（读不用）
+        cur.close()                          # ⑤ 关游标
+        conn.close()                         # ⑥ 断连接
+
         # P8 伪代码①：只把【当前 message】交给图，当作新的 HumanMessage。
         # 为什么只传这一句？历史已经在 Checkpointer 里了，再把 req.history 传一遍每轮都会重复。
         result = graph.invoke(
@@ -69,3 +84,31 @@ def chat(req:ChatRequest) -> ChatResponse:
         message=ChatMessage(role="assistant", content=content),
         usage=usage,
     )
+
+
+# 获取所有会话
+@app.get("/conversations")
+def list_conversations():
+    conn = db.get_db_connection()        # ① 建立连接（拿"电话线"）
+    cur = conn.cursor(dictionary=True)   # ② 开游标；dictionary=True = 每行返回 {列名: 值} 的 dict
+    # ③ 发 SQL：SELECT 后面是要的列，FROM sessions 从表里查，
+    #    ORDER BY updated_at DESC = 按更新时间倒序（最近更新的排最前面）
+    cur.execute("SELECT id,title,created_at,updated_at FROM sessions ORDER BY updated_at DESC")
+    rows = cur.fetchall()                # ④ 把结果全部取回 → 一个 list，每个元素是一行 dict
+    cur.close()                          # ⑤ 关游标（用完就还）
+    conn.close()                         # ⑥ 断连接
+    return rows                          # ⑦ 返回给 FastAPI，会自动序列化成 JSON 数组
+
+# 删除一个会话
+@app.delete("/conversations/{conversation_id}")
+def delete_conversation(conversation_id: str):
+    conn = db.get_db_connection()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM sessions WHERE id = %s", (conversation_id,))
+    conn.commit()
+    deleted = cur.rowcount
+    cur.close()
+    conn.close()
+    if deleted == 0:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    return {"deleted": conversation_id}

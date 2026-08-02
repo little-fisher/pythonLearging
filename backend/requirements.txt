@@ -4,4 +4,4 @@ openai
 python-dotenv
 langgraph
 langchain-deepseek
-
+mysql-connector-python
