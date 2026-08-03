@@ -2,18 +2,13 @@
 # 输入：消息列表 list[dict[str, str]]（role/content 对象）
 # 输出：回答文本 + 可选用量 tuple[str, dict[str, int] | None]
 # 不做：不处理 FastAPI Request，不把完整上游响应返回浏览器
-
-import os
-
-from dotenv import load_dotenv   # 把 backend/.env 读进环境变量
+from decouple import config # 从 .env 读取环境变量
 from openai import OpenAI        # 官方 OpenAI 兼容客户端（DeepSeek 兼容）
 
-# 1) 读取 .env（必须在进程里先执行，之后 os.getenv 才能取到值）
-load_dotenv()
 
-# 2) 用 os.getenv 取 Key 和 Model（第二个参数是默认值）
-API_KEY = os.getenv("DEEPSEEK_API_KEY")
-MODEL = os.getenv("DEEPSEEK_MODEL", "deepseek-v4-flash")
+# 2) 用 config 取 Key 和 Model（第二个参数是默认值）
+API_KEY = config("DEEPSEEK_API_KEY")
+MODEL = config("DEEPSEEK_MODEL", default="deepseek-v4-flash")
 
 def get_client() -> OpenAI:
    # 3) 任一缺失或还是占位符时，给出明确错误，而不是让 DeepSeek 返回看不懂的鉴权错误

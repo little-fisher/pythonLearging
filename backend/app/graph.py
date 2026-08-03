@@ -4,10 +4,8 @@
 #         由 LangGraph 负责记住 messages（状态）并决定执行顺序（边）。
 # 分工：main(路由层) -> graph(图/状态) -> ChatDeepSeek(调模型)
 # P6 只建最小图：START -> call_model -> END（P7 会在这里加 Checkpointer 存记忆）
+from decouple import config
 
-import os
-
-from dotenv import load_dotenv                        # 读 backend/.env（和 deepseek_client 一样）
 from langchain_deepseek import ChatDeepSeek           # LangChain 的 DeepSeek 适配器（相当于 P3 的 OpenAI 客户端）
 from langgraph.graph import StateGraph, START, END    # 图 + 两个内置特殊节点：入口 START / 出口 END
 from langgraph.graph.message import MessagesState     # 官方消息状态：唯一键是 messages（复数）
@@ -17,14 +15,13 @@ from datetime import datetime
 from langchain_core.tools import tool
 from langchain_core.messages import ToolMessage
 
-load_dotenv()
 
 # 模型名仍从环境变量读，与 .env 保持一致
-MODEL = os.getenv("DEEPSEEK_MODEL", "deepseek-v4-flash")
+MODEL = config("DEEPSEEK_MODEL", default="deepseek-v4-flash")
 
 # 创建模型实例：ChatDeepSeek 是"LangChain 版的 DeepSeek 客户端"
 # 不传 api_key 时它会自动读 DEEPSEEK_API_KEY 环境变量（这里显式传，和 P3 写法一致更明确）
-model = ChatDeepSeek(model=MODEL, api_key=os.getenv("DEEPSEEK_API_KEY"))
+model = ChatDeepSeek(model=MODEL, api_key=config("DEEPSEEK_API_KEY"))
 @tool
 def get_current_time() -> str:
     """返回当前时间的字符串表示"""
@@ -86,11 +83,11 @@ builder.add_edge("call_tool", "call_model")  # 边②：工具 → 工位（工�
 # D4-4：Checkpointer 换成 MySQL 持久化 —— InMemorySaver 重启就丢，这个不会。
 # 自己持有一条【持久连接】（不放进 with），进程存活期间一直复用。
 DB_CONN = pymysql.connect(
-    host=os.getenv("DB_HOST", "127.0.0.1"),
-    port=int(os.getenv("DB_PORT", "3306")),
-    user=os.getenv("DB_USER", "root"),
-    password=os.getenv("DB_PASSWORD", "root"),
-    database=os.getenv("DB_NAME", "agent_lab"),
+    host=config("DB_HOST", default="127.0.0.1"),
+    port=int(config("DB_PORT", default=3306)),
+    user=config("DB_USER", default="root"),
+    password=config("DB_PASSWORD", default="root"),
+    database=config("DB_NAME", default="agent_lab"),
     autocommit=True,
 )
 checkpointer = PyMySQLSaver(DB_CONN)   # 用这条连接做记忆的"仓库"

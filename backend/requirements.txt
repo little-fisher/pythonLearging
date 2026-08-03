@@ -7,3 +7,4 @@ langchain-deepseek
 mysql-connector-python
 pymysql
 langgraph-checkpoint-mysql
+python-decouple
