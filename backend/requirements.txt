@@ -8,3 +8,5 @@ mysql-connector-python
 pymysql
 langgraph-checkpoint-mysql
 python-decouple
+redis
+pika
