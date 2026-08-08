@@ -10,6 +10,8 @@ Django 项目全局配置 —— Agent Lab（Django 重写版）。
 
 from pathlib import Path
 from decouple import config as env_config
+import pymysql
+pymysql.install_as_MySQLdb()
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -29,7 +31,7 @@ ALLOWED_HOSTS = []
 
 
 # Application definition
-
+# Django 的"插件注册表"——告诉 Django 你这个项目装了哪些模块，Django 才知道去哪里找 models、视图、模板
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -80,8 +82,15 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': env_config('DB_NAME', default = 'agent_lab'),
+        'USER': env_config('DB_USER', default = 'root'),
+        'PASSWORD': env_config('DB_PASSWORD', default = 'root'),
+        'HOST': env_config('DB_HOST', default = '127.0.0.1'),
+        'PORT': env_config('DB_PORT', default = 3306),
+        'OPTIONS': {
+            'charset': 'utf8mb4',
+        }
     }
 }
 
@@ -134,6 +143,16 @@ MAILERS = {
 
 REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': [
-        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.JSONRenderer', # 只返回 JSON
+        'rest_framework.renderers.BrowsableAPIRenderer', # 可浏览的 API
+    ],
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser', # 只接受 JSON
     ],
 }
+
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+]
+CORS_ALLOW_CREDENTIALS = True

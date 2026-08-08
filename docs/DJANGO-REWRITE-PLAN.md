@@ -372,7 +372,7 @@ def chat(request):
     ]
     messages.append({'role': 'user', 'content': req['message']})
 
-    # 4. 调模型
+    # 4. 调模型 
     try:
         content, usage = chat_completion(messages)
     except Exception:
