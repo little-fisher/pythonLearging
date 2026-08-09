@@ -10,11 +10,13 @@ from .graph import graph as langgraph_graph
 def health(request):
     return Response({"status": "ok", "service": "agent-lab-django"})
 
+# 获取所有会话
 @api_view(['GET'])
 def list_conversations(request): # 列出所有会话
     sessions = Session.objects.values('id', 'title', 'created_at','updated_at') 
     return Response(list(sessions))
 
+# 删除会话
 @api_view(['DELETE'])
 def delete_conversation(request, conversation_id): # 删除会话
     try:
@@ -27,6 +29,7 @@ def delete_conversation(request, conversation_id): # 删除会话
             status=status.HTTP_404_NOT_FOUND
         )
 
+# 聊天接口
 @api_view(['POST'])
 def chat(request):
     # 1. 校验请求（Serializer 自动返回 400）
@@ -53,3 +56,23 @@ def chat(request):
         'message': {'role': 'assistant', 'content': content},
         'usage': None
     })
+
+# 获取会话详情
+@api_view(['GET'])
+def get_conversation_messages(request, conversation_id):
+
+    # 1.只读：从 Checkpointer 取该会话快照（不跑图、不调模型）
+    snapshot = langgraph_graph.get_state(
+        {'configurable': {'thread_id': conversation_id}}
+    )
+    # 2. 从快照中提取消息
+    messages = snapshot.values.get('messages', []) if snapshot and snapshot.values else []
+    # 3. 组装响应
+    return Response([
+        {
+            'role': 'user' if m.type == 'human' else 'assistant',
+            'content': m.content
+        }
+        for m in messages
+        if m.type in ('human', 'ai')
+    ])
