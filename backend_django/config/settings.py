@@ -167,3 +167,14 @@ CACHES = {
         }
     }
 }
+
+# DeepSeek 配置
+DEEPSEEK_API_KEY = env_config('DEEPSEEK_API_KEY')
+DEEPSEEK_MODEL = env_config('DEEPSEEK_MODEL', default='deepseek-v4-flash')
+
+# 数据库连接（graph.py 的 Checkpointer 用）
+DB_HOST = env_config('DB_HOST', default='127.0.0.1')
+DB_PORT = env_config('DB_PORT', default='3306', cast=int)
+DB_USER = env_config('DB_USER', default='root')
+DB_PASSWORD = env_config('DB_PASSWORD', default='')
+DB_NAME = env_config('DB_NAME', default='agent_lab')

@@ -1,8 +1,9 @@
-from decouple import config
 from openai import OpenAI
+from django.conf import settings
+# 其实没用上这个文件
 
-API_KEY = config("DEEPSEEK_API_KEY")
-MODEL = config("DEEPSEEK_MODEL", default="deepseek-v4-flash")
+API_KEY = settings.DEEPSEEK_API_KEY
+MODEL = settings.DEEPSEEK_MODEL
 
 BASE_URL = "https://api.deepseek.com"
 
