@@ -13,8 +13,16 @@ def health(request):
 # 获取所有会话
 @api_view(['GET'])
 def list_conversations(request): # 列出所有会话
+    # 此处缓存只是演示，实际感觉可以不用加
+    cache_key = 'conversations:list'
+    cached = cache.get(cache_key)
+    if  cached is not None:
+        return Response(cached)
+    
     sessions = Session.objects.values('id', 'title', 'created_at','updated_at') 
-    return Response(list(sessions))
+    data = list(sessions)
+    cache.set(cache_key, data, timeout=30) # 缓存 30 秒 cache
+    return Response(data)
 
 # 删除会话
 @api_view(['DELETE'])
