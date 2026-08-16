@@ -10,6 +10,9 @@ def double(state: myState) -> myState:
 
 builder = StateGraph(myState)
 builder.add_node(double)
-builder.add_edge(double, START)
-builder.add_edge(double, END)
+builder.add_edge(START, 'double')
+builder.add_edge('double', END)
 graph = builder.compile()
+
+result = graph.invoke({'value': 21})
+print(result)

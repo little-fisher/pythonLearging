@@ -9,7 +9,10 @@
 
 ```bash
 cd /Users/aiyi/Documents/python项目/learning/backend_django
+mac激活命令
 source .venv/bin/activate
+windows激活命令
+.venv\Scripts\Activate.ps1
 
 # 启动开发服务器
 python manage.py runserver
