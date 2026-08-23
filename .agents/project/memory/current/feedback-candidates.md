@@ -66,3 +66,35 @@
 - better_decision: unknown
 - reusable_output: unknown
 - next_update: none
+
+<!-- knowledge-feedback-id: f28c7a2410b6 -->
+## 2026-08-23 - LangGraph L9 Human-in-the-loop 学习（interrupt/Command 审批流）
+
+### Knowledge Feedback
+
+- task_type: learning
+- agent_tool: unknown
+- duration_minutes: unknown
+- duration_source: unknown
+- knowledge_used: yes
+- useful_sources: langgraph-lab/PLAN.md, langgraph-lab/l9_hitl.py
+- missing_sources: 无
+- decisions: interrupt必须配checkpointer（冻结=存档退出而非挂起）；Command(resume=X)让interrupt()调用返回X，进哪个字段由赋值和return决定；resume时节点从头重跑故模型调用必须放interrupt之前的节点（无副作用节点）；打回意见经decision字段拼进generate的prompt实现越改越好；thread_id是存档编号resume必须一致
+- validation: 三次invoke完整跑通：出方案→打回带意见→新方案体现意见→通过→END
+- reusable_asset: l9_hitl.py 审批流样例
+- suggested_destination: langgraph-lab
+- confidence: high
+- sensitive: no
+
+### Knowledge Impact
+
+- task: LangGraph L9 Human-in-the-loop 学习（interrupt/Command 审批流）
+- workflow: 逐关手写练习 + 问答验收
+- knowledge_level: K3
+- useful_sources: langgraph-lab/PLAN.md, langgraph-lab/l9_hitl.py
+- missing_sources: 无
+- saved_explanation: unknown
+- avoided_rework: unknown
+- better_decision: unknown
+- reusable_output: unknown
+- next_update: none
