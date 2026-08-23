@@ -23,13 +23,13 @@ model_with_tools = model.bind_tools([get_current_time])
 
 def call_model(state: myState) -> myState:
     reply = model_with_tools.invoke(state['messages'])
-    print('--- call_model ---')
+    print('--- 1.call_model ---')
     print(reply.pretty_repr())
     return {'messages': [reply]}
 
 def add_tools(state: myState) -> myState:
     call = state['messages'][-1].tool_calls[0]
-    print('--- call_tool ---')
+    print('---2. call_tool ---')
     print('模型请求调用：', call['name'], '参数：', call['args'])
 
     result = get_current_time.invoke(call['args'])
@@ -50,5 +50,5 @@ builder.add_edge('add_tools', 'call_model')
 
 graph = builder.compile()
 result = graph.invoke({'messages': [HumanMessage(content='What is the current time?')]})
-print('=== 最终回答 ===')
+print('=== 3.最终回答 ===')
 print(result['messages'][-1].content)
