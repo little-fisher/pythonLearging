@@ -6,3 +6,6 @@ __pycache__/
 .pytest_cache/
 .playwright-cli/
 .env.example
+
+# 课件文件较大，走网盘分发，不进仓库
+redis/*.pptx
