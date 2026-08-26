@@ -98,3 +98,35 @@
 - better_decision: unknown
 - reusable_output: unknown
 - next_update: none
+
+<!-- knowledge-feedback-id: 8b3cf7220fbc -->
+## 2026-08-26 - git push 推送大文件到 GitHub 连接被重置
+
+### Knowledge Feedback
+
+- task_type: ops-troubleshooting
+- agent_tool: unknown
+- duration_minutes: unknown
+- duration_source: unknown
+- knowledge_used: no
+- useful_sources: none
+- missing_sources: 缺少本机网络/GitHub 推送排障经验条目
+- decisions: 直连/HTTP代理/SOCKS5 推送均在中途 curl 56 重置，小请求正常；判定为大文件(约20MB pptx)长连接上传被中断；经用户确认后将 pptx 提交从历史 rebase 丢弃、文件保留本地并加入 gitignore，随后推送成功
+- validation: git push origin main 成功，远端 9a7ec6b..9c48afc
+- reusable_asset: GitHub 大文件推送失败排障路径：先删大文件，再考虑代理/SSH
+- suggested_destination: 项目运维经验
+- confidence: high
+- sensitive: no
+
+### Knowledge Impact
+
+- task: git push 推送大文件到 GitHub 连接被重置
+- workflow: git 推送排障
+- knowledge_level: K1
+- useful_sources: none
+- missing_sources: 缺少本机网络/GitHub 推送排障经验条目
+- saved_explanation: unknown
+- avoided_rework: unknown
+- better_decision: unknown
+- reusable_output: unknown
+- next_update: none
