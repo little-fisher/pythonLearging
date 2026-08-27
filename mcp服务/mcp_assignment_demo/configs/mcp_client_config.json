@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "assignment-tools": {
+      "command": "python",
+      "args": ["-m", "app.server"],
+      "cwd": "/Users/xieyucheng/Documents/python_projects/python_demo/demo/第七期_MCP服务/mcp_assignment_demo"
+    }
+  }
+}

@@ -1,0 +1,8 @@
+mcp[cli]>=1.28,<2
+starlette>=0.40
+uvicorn[standard]>=0.30
+langchain>=1.0
+langchain-openai>=1.0
+langchain-mcp-adapters>=0.3
+langgraph>=1.0
+python-decouple>=3.8
