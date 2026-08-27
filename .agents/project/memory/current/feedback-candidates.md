@@ -130,3 +130,35 @@
 - better_decision: unknown
 - reusable_output: unknown
 - next_update: none
+
+<!-- knowledge-feedback-id: 81dd4ccb46fb -->
+## 2026-08-26 - Redis 学习计划 Day1-2 辅导（环境/String/Hash）
+
+### Knowledge Feedback
+
+- task_type: teaching
+- agent_tool: unknown
+- duration_minutes: unknown
+- duration_source: unknown
+- knowledge_used: yes
+- useful_sources: redis/REDIS-LEARNING-PLAN.md
+- missing_sources: none
+- decisions: 按计划 Day1 概述+环境、Day2 String/Hash 推进；截图留存到 redis/work/images/
+- validation: docker redis:7 容器实操验证，SET/INCR/SETEX/HSET/HSCAN 均通过
+- reusable_asset: 学习计划按天推进+自测题核对的辅导模式可复用于后续 Day3-7
+- suggested_destination: redis 学习专题
+- confidence: high
+- sensitive: no
+
+### Knowledge Impact
+
+- task: Redis 学习计划 Day1-2 辅导（环境/String/Hash）
+- workflow: 技术学习辅导
+- knowledge_level: K2
+- useful_sources: redis/REDIS-LEARNING-PLAN.md
+- missing_sources: none
+- saved_explanation: unknown
+- avoided_rework: unknown
+- better_decision: unknown
+- reusable_output: unknown
+- next_update: none
