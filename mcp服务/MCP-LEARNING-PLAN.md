@@ -9,10 +9,20 @@
 ## 总体路线
 
 ```
-阶段一（今天）  MCP 概念 + 跑通 demo（单测 → stdio → HTTP → LangGraph Agent）
-阶段二（今天晚/周六前）  精读 demo 代码，理解分层与协议细节
-阶段三（课后插空）  作业：把 backend_django 聊天项目升级为 MCP 调用
+阶段一（今天）  MCP 概念 + 跑通 demo（单测 → stdio → HTTP → LangGraph Agent）   ✅ 已完成 2026-08-28
+阶段二（今天晚/周六前）  精读 demo 代码，理解分层与协议细节                      ✅ 已完成 2026-08-28
+阶段三（课后插空）  作业：把 backend_django 聊天项目升级为 MCP 调用              ⬜ 未开始
 ```
+
+## 进度记录
+
+**2026-08-28（阶段一 + 阶段二完成）**
+- 环境：demo venv 重建 + 依赖 + `.env`（密钥从 langgraph-lab 复制）；Windows 下跑 agent 需加 `-X utf8`（GBK 控制台遇 ✅ 会 UnicodeEncodeError）
+- 跑通：单测 2 个、stdio 握手（printf 发 JSON-RPC 验证 initialize/tools/list/resources/prompts）、HTTP + `langgraph_agent`、stdio 版 `langgraph_stdio_agent`
+- 精读：data → service → server.py → http_server.py → 两个 agent + client 配置，五层全过完
+- 动手题：新增 `get_phase_submission_rate` Tool（data 加 `CLASS_SIZE=10` 常量，service 加 `get_submission_rate`，server 注册薄壳，单测 1 个），stdio agent 实测模型自主选中新工具，返回第三期 30.0%
+- 概念结论：Tool/Resource/Prompt 的判断轴是"触发主体"（模型/Host·用户/用户）而非读写；类型注解即契约；agent 逻辑与传输解耦（两版 agent 只差配置字典）；Skill（明天培训）= 给 AI 的 SOP，MCP 是产品能力、Skill 是开发规矩
+- 下次入口：从下方"阶段三"开工，先建 `backend_django/mcp_server/`
 
 ---
 
@@ -57,19 +67,24 @@
 
 ## 阶段三 — 课程作业：改造 backend_django（对应 PPT 第 14~15 页）
 
-**目标**：保留现有可视化聊天页面与 MySQL 会话记忆，让 Agent改为通过 MCP 管理和查询会话。
+**目标**：保留现有可视化聊天页面与 MySQL 会话记忆，给 Agent 接入 MCP，让**模型自主决策**调用外部能力。
+
+**工具选型原则**：MCP Tool 应该是"模型在对话中自主决定要不要调"的能力，而不是前端/主机本来就该做的编排动作。
+因此 `create_session` / `list_sessions`（用户在前端点选，属 Host 层编排）**不封装**，继续留在 Django REST 层给前端用——这恰好演示"MCP 不替代 Django"。
 
 **步骤**
-1. 新增 MCP Server（可放 `backend_django/apps/` 下或独立目录），封装至少 2 个 Tool：
-   - `create_session(title)` 创建会话
-   - `list_sessions()` 查询会话列表
-   - `get_history(session_id)` 读取历史消息（复用 PyMySQLSaver 快照逻辑）
-2. 改造 `apps/chat/graph.py`：`MultiServerMCPClient` 加载 Tools + `create_react_agent(model, tools, checkpointer=...)`
-3. 验收：在原有页面完成一次 MCP Tool 调用（切换对话窗口并展示历史消息），截图提交
+1. 新增 MCP Server（独立目录，如 `backend_django/mcp_server/`），封装至少 2 个 Tool：
+   - `get_current_time()` 返回当前时间（热身 Tool，直接把 `backend/app/graph.py` 里那个本地工具搬过来，最快跑通链路）
+   - `search_sessions(keyword)` 按关键词跨会话搜索（先搜 `Session.title` 即可）——补 checkpointer 的短板：它只给当前 thread 的历史，跨会话检索它没有
+   - `get_history(session_id)` 读取指定会话历史（复用 `views.py` 里 `graph.get_state` 快照逻辑）——单独封它没意义（历史本来就在 checkpointer 里），但作为 `search_sessions` 的下一步，模型有真实的"搜到→点开看"决策链
+   - （可选进阶）`save_note(content)` / `list_notes()`：跨会话长期记忆，需新建 `Note` 模型
+2. 改造 `apps/chat/graph.py`：`MultiServerMCPClient` 加载 Tools + `create_react_agent(model, tools, checkpointer=...)`，替换现有手写 `call_tool` 节点的图
+3. 验收：在原有页面问一个需要跨会话检索的问题（如"我们之前是不是聊过 Redis？"），观察到模型自主发起 `search_sessions` →（必要时）`get_history` 的 Tool 调用链，截图提交
 
 **注意点**
 - `get_tools()` 是异步的，Django 同步视图场景建议在启动时加载一次
 - MCP Server 独立进程运行，不要塞进 Django；业务逻辑复用现有 service/ORM 层
+- 对模型而言本地工具与 MCP 工具无感（看到的都是名称+schema），区别在工具侧：独立进程、动态发现（`tools/list`）、可被任意 MCP 客户端复用
 
 ---
 

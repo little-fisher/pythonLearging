@@ -11,3 +11,6 @@ ASSIGNMENTS = [
 PHASE_REQUIREMENTS = {
     7: "实现一个学员作业查询 MCP 服务：至少包含 1 个 Tool，参数需要类型说明与校验。",
 }
+
+# 演示用全班人数：真实项目里应替换为学员表查询
+CLASS_SIZE = 10

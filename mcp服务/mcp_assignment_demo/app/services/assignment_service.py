@@ -2,7 +2,7 @@
 
 import logging
 
-from app.data.assignments import ASSIGNMENTS, PHASE_REQUIREMENTS
+from app.data.assignments import ASSIGNMENTS, CLASS_SIZE, PHASE_REQUIREMENTS
 
 logger = logging.getLogger(__name__)
 
@@ -62,4 +62,19 @@ def get_phase_requirement(phase: int) -> str:
     validate_phase(phase)
     result = PHASE_REQUIREMENTS.get(phase, f"第 {phase} 期作业说明暂未录入。")
     logger.info("作业说明查询: phase=%s", phase)
+    return result
+
+
+def get_submission_rate(phase: int) -> dict:
+    """统计指定期数的作业提交率。"""
+    validate_phase(phase)
+    submitted_count = len(list_submitted_students(phase))
+    rate = round(submitted_count / CLASS_SIZE * 100, 1)
+    result = {
+        "phase": phase,
+        "submitted_count": submitted_count,
+        "total_students": CLASS_SIZE,
+        "submission_rate": rate,
+    }
+    logger.info("提交率统计: %s", result)
     return result

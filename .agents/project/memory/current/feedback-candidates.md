@@ -162,3 +162,35 @@
 - better_decision: unknown
 - reusable_output: unknown
 - next_update: none
+
+<!-- knowledge-feedback-id: 103dec0aa042 -->
+## 2026-08-28 - MCP 学习计划阶段一/二：跑通 mcp_assignment_demo(stdio+HTTP+LangGraph agent),精读分层源码,新增 get_phase_submission_rate Tool 并验证
+
+### Knowledge Feedback
+
+- task_type: learning+feature
+- agent_tool: unknown
+- duration_minutes: unknown
+- duration_source: unknown
+- knowledge_used: yes
+- useful_sources: mcp服务/MCP-LEARNING-PLAN.md; mcp服务/mcp_assignment_demo/README.md
+- missing_sources: none
+- decisions: 1) MCP Tool 选型原则:模型有自主决策动机的能力才封 Tool,Host 编排动作(建/删会话)留在 REST 层; 2) 判断轴是触发主体(模型/Host/用户)而非读写; 3) 类型注解即契约,schema 由签名生成; 4) Windows 跑 demo 需 -X utf8 否则 GBK 编码炸 print
+- validation: unittest 3 passed; stdio tools/list 返回 3 个工具; langgraph_stdio_agent 实测模型自主选择新 Tool 并返回 30.0% 提交率
+- reusable_asset: none
+- suggested_destination: mcp服务/MCP-LEARNING-PLAN.md
+- confidence: high
+- sensitive: no
+
+### Knowledge Impact
+
+- task: MCP 学习计划阶段一/二：跑通 mcp_assignment_demo(stdio+HTTP+LangGraph agent),精读分层源码,新增 get_phase_submission_rate Tool 并验证
+- workflow: unknown
+- knowledge_level: K2
+- useful_sources: mcp服务/MCP-LEARNING-PLAN.md; mcp服务/mcp_assignment_demo/README.md
+- missing_sources: none
+- saved_explanation: unknown
+- avoided_rework: unknown
+- better_decision: unknown
+- reusable_output: unknown
+- next_update: none

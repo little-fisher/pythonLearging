@@ -8,6 +8,7 @@ from app.core.logging import configure_logging
 from app.services.assignment_service import (
     find_assignment,
     get_phase_requirement,
+    get_submission_rate,
     list_submitted_students,
 )
 
@@ -49,6 +50,22 @@ def list_phase_submissions(phase: int) -> list[str]:
     logger.info("MCP Tool list_phase_submissions: phase=%s", phase)
     result = list_submitted_students(phase)
     logger.info("MCP Tool list_phase_submissions result: %s", result)
+    return result
+
+
+@mcp.tool(
+    description=(
+        "统计指定期数的作业提交率，返回已提交人数、全班人数和提交率百分比。"
+        "适用于：某期提交率是多少、统计某一期作业完成情况、比较多期提交情况。"
+        "需要提供 phase（第几期，1 到 7）。"
+        "示例：统计第三期作业提交率。"
+    )
+)
+def get_phase_submission_rate(phase: int) -> dict:
+    """统计指定期次的作业提交率。"""
+    logger.info("MCP Tool get_phase_submission_rate: phase=%s", phase)
+    result = get_submission_rate(phase)
+    logger.info("MCP Tool get_phase_submission_rate result: %s", result)
     return result
 
 
