@@ -16,6 +16,14 @@
 
 ## 进度记录
 
+**2026-08-29（阶段三进行中，完成步骤 1-2）**
+- 环境：给 backend_django 建了独立 venv（之前借 langgraph-lab 的，其 mcp 是 2.x 不兼容 FastMCP 写法，钉 `mcp[cli]>=1.28,<2`）；依赖全集 `django djangorestframework python-decouple django-cors-headers django-redis openai pymysql langchain-deepseek langgraph langgraph-checkpoint-mysql mcp[cli] langchain-mcp-adapters`；新建 `.env`（DEEPSEEK_API_KEY + DB_PASSWORD=root）
+- MySQL 用 Docker 新起：`docker run -d --name mysql8 -p 3306:3306 -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=agent_lab mysql:8`，migrate 已跑；Redis 用已有容器 `docker start redis`
+- 完成 `backend_django/mcp_server/server.py` + `apps/chat/services.py`：FastMCP("chat-tools")，已注册 `get_current_time`、`search_sessions` 两个工具，printf 握手验证通过
+- 踩坑记录：①薄壳与业务函数同名会覆盖 import → import 起别名 `_impl`；②ORM 对象不能直接返回，用 `.values()` 转 dict；③独立进程用 ORM 需 bootstrap：`os.environ.setdefault("DJANGO_SETTINGS_MODULE","config.settings")` + `django.setup()`，必须放在 apps import 之前；④FastMCP 异步架构 + Django ORM 同步闸 → 工具改 `async def` + `sync_to_async` 包装（Django 的闸是保护事件循环不被堵）
+- 分层约定：server.py 只写协议适配薄壳，业务逻辑在 apps/chat/services.py
+- 下次入口：步骤 3 给 services.py 加 `get_session_history(session_id)`（抄 views.py:73-86 快照逻辑，graph 从 .graph import）+ server.py 注册 `get_history` 工具；步骤 4 改造 graph.py 时注意"递归拉起"坑（server 进程 django.setup → apps.ready → import graph.py，若 graph.py 在 import 时就连 MCP server 会自己拉自己，需环境变量开关隔离）
+
 **2026-08-28（阶段一 + 阶段二完成）**
 - 环境：demo venv 重建 + 依赖 + `.env`（密钥从 langgraph-lab 复制）；Windows 下跑 agent 需加 `-X utf8`（GBK 控制台遇 ✅ 会 UnicodeEncodeError）
 - 跑通：单测 2 个、stdio 握手（printf 发 JSON-RPC 验证 initialize/tools/list/resources/prompts）、HTTP + `langgraph_agent`、stdio 版 `langgraph_stdio_agent`
