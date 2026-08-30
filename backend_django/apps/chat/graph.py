@@ -4,7 +4,7 @@ import asyncio
 import os
 import sys
 from pathlib import Path
-
+from .skills_loader import list_skills
 import pymysql
 from django.conf import settings
 from langchain.agents import create_agent
@@ -16,6 +16,17 @@ from langchain_mcp_adapters.client import MultiServerMCPClient
 # ---- 1. 模型与提示词 ----
 MODEL = settings.DEEPSEEK_MODEL
 SYSTEM_PROMPT = "你是一个专业的助手"
+
+def build_system_prompt()->str:
+    skills = list_skills()
+    if not skills:
+        return SYSTEM_PROMPT
+    listing = "\n".join(f"- {s['name']}: {s['description']}" for s in skills)
+    return (
+    SYSTEM_PROMPT
+    + "\n\n你可以使用以下技能。当用户请求匹配某个技能的描述时，先调用 load_skill 工具获取完整工作说明，再按说明执行：\n"
+    + listing
+    )
 
 model = ChatDeepSeek(model_name=MODEL, api_key=settings.DEEPSEEK_API_KEY)
 
@@ -42,11 +53,11 @@ else:
     tools = asyncio.run(client.get_tools())
 
 # ---- 3. agent 工厂：同步/异步 saver 共用同一份定义 ----
-def build_agent(checkpointer):
+def build_agent(checkpointer,  system_prompt: str = None):
     return create_agent(
         model=model,
         tools=tools,
-        system_prompt=SYSTEM_PROMPT,
+        system_prompt=system_prompt or build_system_prompt(),
         checkpointer=checkpointer,
     )
 
@@ -55,7 +66,8 @@ def build_agent(checkpointer):
 async def run_agent(message: str, thread_id: str):
     """每次请求独立建异步 checkpointer（aiomysql 连接绑定事件循环，不能跨请求复用）。"""
     async with AIOMySQLSaver.from_conn_string(DB_URI) as cp:
-        agent = build_agent(cp)
+        prompt = build_system_prompt() + f"\n\n当前会话 ID：{thread_id}（用户说'这个会话/本次对话'时，用此 ID 调用 get_session_history）"
+        agent = build_agent(cp, system_prompt=prompt)
         return await agent.ainvoke(
             {"messages": [HumanMessage(content=message)]},
             config={"configurable": {"thread_id": thread_id}},

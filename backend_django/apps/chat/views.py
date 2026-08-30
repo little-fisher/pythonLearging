@@ -1,6 +1,7 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
+from django.core.cache import cache
 import asyncio
 from .models import Session
 from langchain_core.messages import HumanMessage

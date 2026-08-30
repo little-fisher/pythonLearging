@@ -16,6 +16,15 @@
 
 ## 进度记录
 
+**2026-08-30（阶段三全部完成 ✅ + Skill 机制落地）**
+- 步骤 3-5 完成：`get_session_history` 工具、graph.py 改造（v1 `create_agent` + `MultiServerMCPClient` stdio）、页面验收通过
+- 递归防护：server.py 设 `MCP_SERVER_MODE=1`，graph.py 检测到则 tools=[] 不连 MCP
+- 异步链：MCP 工具只有异步实现 → 全链路统一异步；`AIOMySQLSaver.from_conn_string` 每次请求新建（aiomysql 连接绑定事件循环）；`build_agent(checkpointer)` 工厂共用 agent 定义；views 用 `asyncio.run` 桥接
+- Skill 机制：`apps/chat/skills_loader.py`（扫描 skills/*/SKILL.md + frontmatter 解析 + 路径穿越防护）+ MCP `load_skill` 工具 + `build_system_prompt()` 注入技能清单与当前会话 ID
+- 作业：`skills/session-summary/SKILL.md`；shell 实测模型链 `load_skill` → `get_session_history` 按格式输出总结
+- 顺手修的旧账：views.py 缺 `from django.core.cache import cache`；前端 5 处 URL 补 `/api` 前缀与尾斜杠（Django POST 无尾斜杠直接 500，不重定向）
+- 排障经验：`--noreload` 的 runserver 不会加载代码修改；模型自主串联工具靠 description 里写清协作关系；工具返回值要带 id 供模型下一步使用
+
 **明日执行顺序（预计 3 小时，按此顺序做不回头）**
 0. 开工前：`docker start mysql8 redis` → `cd backend_django` → `.\.venv\Scripts\Activate.ps1`
 1. MCP 步骤 3：services.py 加 `get_session_history`（抄 views.py:73-86 快照逻辑）+ server.py 注册 `get_history` 工具（async + sync_to_async）

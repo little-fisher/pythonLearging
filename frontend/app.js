@@ -204,7 +204,7 @@ function deleteSession(sessionId) {
 
   // D4-3 ②：API 模式下，同步删掉后端那条会话（失败也别阻断本地操作）
   if (state.settings.connectionMode === "api") {
-    fetch(`${normalizeEndpoint(state.settings.apiEndpoint)}/conversations/${sessionId}`, {
+    fetch(`${normalizeEndpoint(state.settings.apiEndpoint)}/api/conversations/${sessionId}/`, {
       method: "DELETE",
     }).catch(() => {});
   }
@@ -475,7 +475,7 @@ function createPayload(conversationId, message, history) {
 }
 
 async function requestAssistant(payload) {
-  const response = await fetch(`${normalizeEndpoint(state.settings.apiEndpoint)}/api/chat`, {
+  const response = await fetch(`${normalizeEndpoint(state.settings.apiEndpoint)}/api/chat/`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -497,7 +497,7 @@ async function requestAssistant(payload) {
 async function syncSessionsFromApi() {
   if (state.settings.connectionMode !== "api") return;   // 只有 API 模式才需要后端数据
   try {
-    const res = await fetch(`${normalizeEndpoint(state.settings.apiEndpoint)}/conversations`);
+    const res = await fetch(`${normalizeEndpoint(state.settings.apiEndpoint)}/api/conversations/`);
     if (!res.ok) return;
     const list = await res.json();
     if (!Array.isArray(list)) return;
@@ -558,7 +558,7 @@ async function loadMessagesFromApi(conversationId) {
   if (!session) return;
   try {
     const res = await fetch(
-      `${normalizeEndpoint(state.settings.apiEndpoint)}/conversations/${conversationId}/messages`,
+      `${normalizeEndpoint(state.settings.apiEndpoint)}/api/conversations/${conversationId}/messages/`,
     );
     if (!res.ok) return;                    // 404（后端还没有）等 → 保持现状
     const list = await res.json();          // [{role, content}, ...]
@@ -579,7 +579,7 @@ async function testConnection() {
   const timeout = window.setTimeout(() => controller.abort(), 5000);
 
   try {
-    const response = await fetch(`${normalizeEndpoint(state.settings.apiEndpoint)}/health`, {
+    const response = await fetch(`${normalizeEndpoint(state.settings.apiEndpoint)}/api/health/`, {
       signal: controller.signal,
     });
     if (!response.ok) throw new Error(`/health 返回 ${response.status}`);
