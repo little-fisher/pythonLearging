@@ -1,10 +1,12 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
+import asyncio
 from .models import Session
 from langchain_core.messages import HumanMessage
 from .serializers import ChatRequestSerializer
-from .graph import graph as langgraph_graph
+from .graph import run_agent
+from .services import get_session_history
 
 @api_view(['GET'])
 def health(request):
@@ -52,10 +54,8 @@ def chat(request):
     )
 
     # 3. 只传当前消息（历史在 Checkpointer 里，按 thread_id 取）
-    result = langgraph_graph.invoke(
-        {'messages': [HumanMessage(content=req['message'])]}, # 拿到本次发送的消息通过HumanMessage包成 LangGraph 认识的消息对象
-        config = {'configurable': {'thread_id': req['conversation_id']}}
-    )
+    # MCP 工具只有异步实现，整条链走异步入口；Django 同步视图用 asyncio.run 桥接
+    result = asyncio.run(run_agent(req['message'], req['conversation_id']))
     content = result['messages'][-1].content
 
     # 4. 组装响应
@@ -68,19 +68,4 @@ def chat(request):
 # 获取会话详情
 @api_view(['GET'])
 def get_conversation_messages(request, conversation_id):
-
-    # 1.只读：从 Checkpointer 取该会话快照（不跑图、不调模型）
-    snapshot = langgraph_graph.get_state(
-        {'configurable': {'thread_id': conversation_id}}
-    )
-    # 2. 从快照中提取消息
-    messages = snapshot.values.get('messages', []) if snapshot and snapshot.values else []
-    # 3. 组装响应
-    return Response([
-        {
-            'role': 'user' if m.type == 'human' else 'assistant',
-            'content': m.content
-        }
-        for m in messages
-        if m.type in ('human', 'ai')
-    ])
+    return Response(get_session_history(conversation_id))

@@ -16,6 +16,13 @@
 
 ## 进度记录
 
+**明日执行顺序（预计 3 小时，按此顺序做不回头）**
+0. 开工前：`docker start mysql8 redis` → `cd backend_django` → `.\.venv\Scripts\Activate.ps1`
+1. MCP 步骤 3：services.py 加 `get_session_history`（抄 views.py:73-86 快照逻辑）+ server.py 注册 `get_history` 工具（async + sync_to_async）
+2. MCP 步骤 4 + Skill 加载机制（合并改 graph.py，只改一次）：v1 写法 `create_agent(model, tools, system_prompt, checkpointer)`；MCP tools 通过 MultiServerMCPClient 加载；server.py 里加 `load_skill(skill_name)` 工具（读本地文件，不用 sync_to_async）；graph.py 扫描 skills/ 目录把 name+description 拼进 system_prompt。注意"递归拉起"坑：MCP server 进程 django.setup → apps.ready → import graph.py，若 graph.py import 时就连 MCP 会自己拉自己——需环境变量开关隔离
+3. MCP 步骤 5 验收：runserver 起页面，聊几轮，问"我们之前是不是聊过 XX"，观察模型自主调 search_sessions，截图
+4. Skill 作业：建 `skills/session-summary/SKILL.md`（frontmatter + 工作规则），验证"总结一下这个会话"（应命中）+ 无关问题（不应命中），整理提交物（目录截图、SKILL.md 全文、两条测试截图、description 匹配说明）
+
 **2026-08-29（阶段三进行中，完成步骤 1-2）**
 - 环境：给 backend_django 建了独立 venv（之前借 langgraph-lab 的，其 mcp 是 2.x 不兼容 FastMCP 写法，钉 `mcp[cli]>=1.28,<2`）；依赖全集 `django djangorestframework python-decouple django-cors-headers django-redis openai pymysql langchain-deepseek langgraph langgraph-checkpoint-mysql mcp[cli] langchain-mcp-adapters`；新建 `.env`（DEEPSEEK_API_KEY + DB_PASSWORD=root）
 - MySQL 用 Docker 新起：`docker run -d --name mysql8 -p 3306:3306 -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=agent_lab mysql:8`，migrate 已跑；Redis 用已有容器 `docker start redis`
@@ -86,7 +93,7 @@
    - `search_sessions(keyword)` 按关键词跨会话搜索（先搜 `Session.title` 即可）——补 checkpointer 的短板：它只给当前 thread 的历史，跨会话检索它没有
    - `get_history(session_id)` 读取指定会话历史（复用 `views.py` 里 `graph.get_state` 快照逻辑）——单独封它没意义（历史本来就在 checkpointer 里），但作为 `search_sessions` 的下一步，模型有真实的"搜到→点开看"决策链
    - （可选进阶）`save_note(content)` / `list_notes()`：跨会话长期记忆，需新建 `Note` 模型
-2. 改造 `apps/chat/graph.py`：`MultiServerMCPClient` 加载 Tools + `create_react_agent(model, tools, checkpointer=...)`，替换现有手写 `call_tool` 节点的图
+2. 改造 `apps/chat/graph.py`：`MultiServerMCPClient` 加载 Tools + v1 写法 `create_agent(model=..., tools=..., system_prompt=..., checkpointer=...)`（`create_react_agent` 已弃用，见《第八期》PPT 第 17 页），替换现有手写 `call_tool` 节点的图
 3. 验收：在原有页面问一个需要跨会话检索的问题（如"我们之前是不是聊过 Redis？"），观察到模型自主发起 `search_sessions` →（必要时）`get_history` 的 Tool 调用链，截图提交
 
 **注意点**
