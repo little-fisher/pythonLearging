@@ -194,3 +194,35 @@
 - better_decision: unknown
 - reusable_output: unknown
 - next_update: none
+
+<!-- knowledge-feedback-id: 731d48318c31 -->
+## 2026-09-05 - 为 chat 条件边方案创建独立副本并保留原实现
+
+### Knowledge Feedback
+
+- task_type: requirement-change
+- agent_tool: unknown
+- duration_minutes: unknown
+- duration_source: unknown
+- knowledge_used: yes
+- useful_sources: .agents/project/charter.md,.agents/core/harness/task-intake.md
+- missing_sources: 项目缺少 chat 模块专属设计说明和测试矩阵
+- decisions: 新增 graph_with_branch.py；原 graph.py 与 views.py 不改；使用 /help 和 /skills 快速分支，其余请求保留 Checkpointer Agent 链路
+- validation: AST 语法解析通过；git diff 确认原 graph.py 与 views.py 无变化
+- reusable_asset: 可复用的系统命令快速通道条件边示例
+- suggested_destination: .agents/project/modules/chat.md
+- confidence: high
+- sensitive: no
+
+### Knowledge Impact
+
+- task: 为 chat 条件边方案创建独立副本并保留原实现
+- workflow: 后端方案实现
+- knowledge_level: K2
+- useful_sources: .agents/project/charter.md,.agents/core/harness/task-intake.md
+- missing_sources: 项目缺少 chat 模块专属设计说明和测试矩阵
+- saved_explanation: unknown
+- avoided_rework: unknown
+- better_decision: unknown
+- reusable_output: unknown
+- next_update: none
