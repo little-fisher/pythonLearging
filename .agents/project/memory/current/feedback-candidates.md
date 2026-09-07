@@ -226,3 +226,35 @@
 - better_decision: unknown
 - reusable_output: unknown
 - next_update: none
+
+<!-- knowledge-feedback-id: 9511759f7719 -->
+## 2026-09-07 - 审查 chat 条件分支实现
+
+### Knowledge Feedback
+
+- task_type: regression
+- agent_tool: unknown
+- duration_minutes: unknown
+- duration_source: unknown
+- knowledge_used: yes
+- useful_sources: .agents/core/harness/task-intake.md,backend_django/apps/chat/graph.py
+- missing_sources: 当前终端未发现可用 Django 虚拟环境，无法完成运行级检查
+- decisions: 确认条件路由结构合理；发现 help_node 在技能列表为空时隐式返回 None
+- validation: AST 解析通过；git diff --check 通过；Django 运行检查因 ModuleNotFoundError 被阻断
+- reusable_asset: 条件节点所有输入分支都必须返回符合状态契约的更新字典
+- suggested_destination: .agents/project/modules/chat.md
+- confidence: high
+- sensitive: no
+
+### Knowledge Impact
+
+- task: 审查 chat 条件分支实现
+- workflow: 后端代码审查
+- knowledge_level: K2
+- useful_sources: .agents/core/harness/task-intake.md,backend_django/apps/chat/graph.py
+- missing_sources: 当前终端未发现可用 Django 虚拟环境，无法完成运行级检查
+- saved_explanation: unknown
+- avoided_rework: unknown
+- better_decision: unknown
+- reusable_output: unknown
+- next_update: none
