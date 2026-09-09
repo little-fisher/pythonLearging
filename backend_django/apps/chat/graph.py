@@ -86,12 +86,25 @@ async def help_node(state: ChatState)->dict:
     skills = list_skills()
     lines = [
         "我是一个支持多轮对话和工具调用的助手。",
-        "",
-        "当前支持的基础能力：",
-        "- 查询当前时间",
-        "- 搜索已有会话",
-        "- 读取指定会话的历史消息",
     ]
+    if tools:
+        lines.extend(
+            [
+                "",
+                "当前可用工具：",
+            ]
+        )
+        for tool in tools:
+            lines.append(
+                f"- {tool.name}：{tool.description}"
+            )
+    else:
+        lines.extend(
+            [
+                "",
+                "当前没有可用工具。",
+            ]
+        )
     if skills:
         lines.extend(
             [
@@ -103,23 +116,25 @@ async def help_node(state: ChatState)->dict:
             lines.append(
                 f"- {skill['name']}：{skill['description']}"
             )
-        lines.extend(
-            [
-                "",
-                "你可以直接输入问题，"
-                "我会根据需要自动选择合适的工具。",
+
+    lines.extend(
+        [
+            "",
+            "你可以直接输入问题，"
+            "我会根据需要自动选择合适的工具。",
+        ]
+    )
+    content = "\n".join(lines)
+
+    # 保持与 Agent 返回值相同的基本结构，
+    # 让 Django 视图不需要判断当前走了哪个分支。
+    return {
+        "result": {
+            "messages": [
+                AIMessage(content=content),
             ]
-        )
-        content = "\n".join(lines)
-        # 保持与 Agent 返回值相同的基本结构，
-        # 让 Django 视图不需要判断当前走了哪个分支。
-        return {
-            "result": {
-                "messages": [
-                    AIMessage(content=content),
-                ]
-            }
         }
+    }
 
 async def agent_node(state: ChatState) -> dict:
     """运行带有 MySQL Checkpointer 的普通 Agent。"""

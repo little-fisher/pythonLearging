@@ -258,3 +258,35 @@
 - better_decision: unknown
 - reusable_output: unknown
 - next_update: none
+
+<!-- knowledge-feedback-id: 3c1868db3571 -->
+## 2026-09-08 - 启动前后端并验证动态 MCP 帮助分支
+
+### Knowledge Feedback
+
+- task_type: regression
+- agent_tool: unknown
+- duration_minutes: unknown
+- duration_source: unknown
+- knowledge_used: yes
+- useful_sources: backend_django/apps/chat/graph.py,mcp服务/MCP-LEARNING-PLAN.md
+- missing_sources: 项目启动文档未记录 Homebrew MySQL 与 Docker mysql8 的端口冲突处理
+- decisions: Docker mysql8 改映射到 3307；.env DB_PORT 更新为 3307；StructuredTool 使用属性访问 name/description
+- validation: Django check 通过；GET /api/health 200；POST /api/chat message=/help 返回动态 MCP 工具与技能列表；前后端端口监听正常
+- reusable_asset: MCP get_tools 返回 StructuredTool，应使用 tool.name 和 tool.description
+- suggested_destination: .agents/project/modules/chat.md
+- confidence: high
+- sensitive: no
+
+### Knowledge Impact
+
+- task: 启动前后端并验证动态 MCP 帮助分支
+- workflow: 本地联调
+- knowledge_level: K2
+- useful_sources: backend_django/apps/chat/graph.py,mcp服务/MCP-LEARNING-PLAN.md
+- missing_sources: 项目启动文档未记录 Homebrew MySQL 与 Docker mysql8 的端口冲突处理
+- saved_explanation: unknown
+- avoided_rework: unknown
+- better_decision: unknown
+- reusable_output: unknown
+- next_update: none
