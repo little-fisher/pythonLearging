@@ -290,3 +290,67 @@
 - better_decision: unknown
 - reusable_output: unknown
 - next_update: none
+
+<!-- knowledge-feedback-id: 448988d23c4e -->
+## 2026-09-12 - backend_django 下用 LangGraph+Milvus Lite+fastembed 实现 RAG 作业
+
+### Knowledge Feedback
+
+- task_type: feature
+- agent_tool: unknown
+- duration_minutes: unknown
+- duration_source: unknown
+- knowledge_used: yes
+- useful_sources: 第十期_向量库.pptx 代码骨架
+- missing_sources: pymilvus 3.x 需单独装 pymilvus[milvus_lite] 才能用本地文件模式；Milvus Lite 新进程检索前必须 load_collection
+- decisions: Embedding 用 fastembed 本地 bge-small-zh-v1.5(512维)，LLM 复用 .env 的 DeepSeek；作业做成独立 rag/ 脚本包
+- validation: ingest 与 demo 实跑通过，3 问端到端回答含 source，1 问用 phase 过滤
+- reusable_asset: backend_django/rag/ 可作为 RAG 最小模板复用
+- suggested_destination: 项目知识/RAG 模板
+- confidence: high
+- sensitive: no
+
+### Knowledge Impact
+
+- task: backend_django 下用 LangGraph+Milvus Lite+fastembed 实现 RAG 作业
+- workflow: 第十期向量库作业
+- knowledge_level: K2
+- useful_sources: 第十期_向量库.pptx 代码骨架
+- missing_sources: pymilvus 3.x 需单独装 pymilvus[milvus_lite] 才能用本地文件模式；Milvus Lite 新进程检索前必须 load_collection
+- saved_explanation: unknown
+- avoided_rework: unknown
+- better_decision: unknown
+- reusable_output: unknown
+- next_update: none
+
+<!-- knowledge-feedback-id: bd8ce6ca1f2a -->
+## 2026-09-12 - 将 backend_django/rag 移为项目根目录下独立 RAG 作业
+
+### Knowledge Feedback
+
+- task_type: asset-data-update
+- agent_tool: unknown
+- duration_minutes: unknown
+- duration_source: unknown
+- knowledge_used: yes
+- useful_sources: .agents/core/harness/task-intake.md,.agents/core/harness/tasks/asset-data-update.md
+- missing_sources: 无独立 Python 作业目录规范
+- decisions: 保留 rag 包名，移到项目根；环境配置改为 rag/.env；补 requirements.txt 和 .env.example
+- validation: 旧目录不存在；新目录存在；Python AST 语法通过；22 条知识字段完整；CompiledStateGraph 导入通过
+- reusable_asset: 独立 LangGraph RAG 作业目录结构
+- suggested_destination: 项目机器 Wiki
+- confidence: high
+- sensitive: no
+
+### Knowledge Impact
+
+- task: 将 backend_django/rag 移为项目根目录下独立 RAG 作业
+- workflow: 目录解耦与最小配置调整
+- knowledge_level: K2
+- useful_sources: .agents/core/harness/task-intake.md,.agents/core/harness/tasks/asset-data-update.md
+- missing_sources: 无独立 Python 作业目录规范
+- saved_explanation: unknown
+- avoided_rework: unknown
+- better_decision: unknown
+- reusable_output: unknown
+- next_update: none

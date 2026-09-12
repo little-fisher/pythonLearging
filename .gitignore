@@ -9,3 +9,4 @@ __pycache__/
 
 # 课件文件较大，走网盘分发，不进仓库
 *.pptx
+rag/milvus_rag.db*
