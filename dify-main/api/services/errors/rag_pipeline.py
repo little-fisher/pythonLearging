@@ -1,2 +1,0 @@
-class RagPipelineResourceNotFoundError(Exception):
-    pass

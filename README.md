@@ -95,3 +95,6 @@ learning/
 - [LangGraph Memory](https://docs.langchain.com/oss/python/langgraph/add-memory)
 - [LangChain DeepSeek 集成](https://docs.langchain.com/oss/python/integrations/chat/deepseek)
 
+
+
+sk-ws-H.PMXDPLI.CPTP.MEQCIHEd_rhBttNDEj5mSkPD0BdeIFA1I2AVYji1EgnZeTKyAiBY3AyxjxcUfT37LJODJt3BWC3Z0gDyjPd-SdYPCFk7ag
