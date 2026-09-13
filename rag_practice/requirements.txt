@@ -1,0 +1,6 @@
+fastembed==0.8.0 #文本 → 向量
+langchain-deepseek==1.1.0 #Deepseek模型的Langchain实现
+langgraph==1.2.11 
+milvus-lite==3.2.1 #  向量数据库的轻量级版本
+pymilvus==3.0.1 #  负责建表（schema）、建索引、写入、按相似度搜 Top-K
+python-dotenv==1.2.3

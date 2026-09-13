@@ -354,3 +354,35 @@
 - better_decision: unknown
 - reusable_output: unknown
 - next_update: none
+
+<!-- knowledge-feedback-id: d3c7f1175c43 -->
+## 2026-09-13 - RAG 重练计划 rag_practice 从零实现（数据/Embedding/Milvus/LangGraph/demo 6 步）
+
+### Knowledge Feedback
+
+- task_type: learning-practice
+- agent_tool: unknown
+- duration_minutes: unknown
+- duration_source: unknown
+- knowledge_used: yes
+- useful_sources: docs/RAG-PRACTICE-PLAN.md; rag/ 参考实现
+- missing_sources: none
+- decisions: 依赖装进 rag_practice/.venv 独立环境；字符串主键用 VARCHAR；DB 路径改 C:/milvus_rag 避开中文路径
+- validation: 每步命令行验证（50 条入库、Top3 检索、phase 过滤、3 问端到端）全部通过
+- reusable_asset: rag_practice/ 全套可运行代码
+- suggested_destination: RAG 学习笔记：Windows 中文路径导致 milvus-lite faiss 写索引失败是高频坑
+- confidence: high
+- sensitive: no
+
+### Knowledge Impact
+
+- task: RAG 重练计划 rag_practice 从零实现（数据/Embedding/Milvus/LangGraph/demo 6 步）
+- workflow: coach 式分步教学，用户动手、Agent 验收
+- knowledge_level: K2
+- useful_sources: docs/RAG-PRACTICE-PLAN.md; rag/ 参考实现
+- missing_sources: none
+- saved_explanation: unknown
+- avoided_rework: unknown
+- better_decision: unknown
+- reusable_output: unknown
+- next_update: none

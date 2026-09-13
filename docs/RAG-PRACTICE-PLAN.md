@@ -80,11 +80,11 @@ search_milvus("LangGraph 怎么暂停等人工确认？", expr='phase == "基础
 
 ## 进度记录
 
-- [ ] 第 1 步 数据
-- [ ] 第 2 步 Embedding
-- [ ] 第 3 步 Milvus 入库
-- [ ] 第 4 步 检索
-- [ ] 第 5 步 LangGraph
-- [ ] 第 6 步 demo 验收
+- [x] 第 1 步 数据（50 条，键验证通过）
+- [x] 第 2 步 Embedding（512 维；近义 0.86 vs 无关 0.36，语义区分明显）
+- [x] 第 3 步 Milvus 入库（50 条；主键为字符串 id，schema 用 VARCHAR）
+- [x] 第 4 步 检索（Top3 命中正确；phase 过滤验证通过）
+- [x] 第 5 步 LangGraph（端到端跑通，回答带来源；注意模型名用 deepseek-chat）
+- [x] 第 6 步 demo 验收（3 问端到端通过；Q3 带过滤；Q2 体现"不知道就直说"的防幻觉约束）
 
 > 做一步勾一步，新会话里 Agent 会按这里的勾选状态接续。
